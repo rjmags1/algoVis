@@ -1,0 +1,207 @@
+* {
+   font-family: 'Ubuntu', 'Courier New', Courier, monospace;
+   margin: 0;
+   padding: 0;
+   box-sizing: border-box;
+}
+
+.main-content {
+    height: calc(100vh - 56px);
+    overflow: hidden;
+}
+
+/* NAVBAR ------------------------------------------------*/
+/* base navbar styles */
+#navbar h1 {
+    padding: 2%;
+    color: #f6f7f8;
+    background-color: #254441;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+}
+
+#navbar a {
+    color: #f6f7f8;
+    background-color: #254441;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: background-color 0.5s;
+}
+
+#navbar a:hover {
+    background-color: #305753;
+}
+
+#navbar ul {
+    list-style: none;
+    display: flex;
+}
+
+#navbar li {
+    width: 100%;
+    text-align: center;
+    position: relative;
+}
+
+/* on hover give submenu li block display */
+#navbar li:hover .submenu > li {
+    display: block;
+    top: 0px;
+}
+
+/* when submenus not hovered over, remove submenu li from flow and hide them */
+.submenu li {
+    display: none;
+    position: absolute;
+    top: 0px;
+}
+
+/* submenus positioned relative to main navbar lis */
+.submenu {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    width: 100%;
+}
+
+.header-li {
+    flex: 6;
+}
+
+.menu-li {
+    flex: 1;
+}
+
+
+
+
+/* ARRAY BARS -------------------------------------------------*/
+#array-visualizer {
+    height: calc(100% - 56px);
+}
+
+#bars-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.bar-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin: 5px;
+    height: 80%;
+}
+
+.bar-card > p {
+    font-size: 0.75rem;
+    font-family: monospace;
+    font-weight: bold;
+}
+
+.bar {
+    background-color: #254441;
+    width: 1rem;
+    margin-bottom: 2px;
+}
+
+
+
+
+/* CONTROL PANEL ---------------------------------------------- */
+.control-panel {
+    height: 56px;
+    background-color: rgb(127, 148, 136);
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    color: #f6f7f8;
+}
+
+#selected-algo {
+    text-shadow: 1px 1px 2px black;
+    margin: 2%;
+    width: 18%;
+}
+
+.control {
+    margin: 0 1%;
+}
+
+.control.button-card {
+    width: 120px; 
+}
+
+.control-button {
+    padding: 4px;
+    width: 100%;
+    background-color: #254441;
+    color: #f6f7f8;
+    border-radius: 10px;
+    border: 1px solid #f6f7f8;
+    cursor: pointer;
+}
+
+.control-button:hover {
+    background-color: tomato;
+}
+
+.slider-label {
+    text-shadow: 1px 1px 2px black;
+}
+
+/* cross browser compatible styles for range inputs */
+input[type=range] {
+  background: transparent; 
+  cursor: pointer;
+}
+
+input[type=range]:focus {
+  outline: none;
+}
+
+input[type=range]::-ms-track {
+  width: 100%;
+  background: transparent; 
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+  background: #254441;
+}
+
+input[type=range]:focus::-webkit-slider-runnable-track {
+  background: #254441;
+}
+
+input[type=range]::-moz-range-track {
+  background: #254441;
+}
+
+input[type=range]::-ms-track {
+  background: #254441;
+}
+
+input[type=range]::-ms-fill-lower {
+  background: #254441;
+}
+
+input[type=range]:focus::-ms-fill-lower {
+  background: #254441;
+}
+
+input[type=range]::-ms-fill-upper {
+  background: #254441;
+}
+
+input[type=range]:focus::-ms-fill-upper {
+  background: #254441;
+}

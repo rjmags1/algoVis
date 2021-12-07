@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- mobile friendly -->
+    <title>Algorithm Visualizer</title>
+    <link rel="icon" href="./images/favicon.png">
+    <link rel="stylesheet" href="./styles.css">
+    <script src="index.js" type="module"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@1,500&display=swap" rel="stylesheet"> 
+</head>
+<body>
+    <nav id="navbar">
+       <ul>
+           <li class="header-li">
+               <h1 id="title-header">Algorithm Visualizer</h1>
+            </li>
+           <li class="menu-li">
+               <a href="#">Sorting</a>
+               <ul id="sorting-submenu" class="submenu">
+                   <li>
+                       <a href="#">Bubble Sort</a>
+                    </li>
+                    <li>
+                        <a href="#">Insertion Sort</a>
+                    </li>
+                    <li>
+                        <a href="#">Selection Sort</a>
+                    </li>
+                    <li>
+                        <a href="#">Quick Sort</a>
+                    </li>
+                    <li>
+                        <a href="#">Heap Sort</a>
+                    </li>
+                    <li>
+                        <a href="#">Merge Sort</a>
+                    </li>
+               </ul>
+            </li>
+           <li class="menu-li">
+               <a href="#">Searching</a>
+               <ul id="searching-submenu" class="submenu">
+                   <li>
+                       <a href="#">Binary Search</a>
+                   </li>
+                   <li>
+                       <a href="#">Ternary Search</a>
+                   </li>
+               </ul>
+            </li>
+           <li class="menu-li">
+               <a href="#">Graph</a>
+               <ul class="submenu">
+                   <li>
+                       <a href="#">DFS</a>
+                   </li>
+                   <li>
+                       <a href="#">BFS</a>
+                   </li>
+                   <li>
+                       <a href="#">Dijsktra</a>
+                   </li>
+                   <li>
+                       <a href="#">Top Sort</a>
+                   </li>
+               </ul>
+            </li>
+        </ul>
+    </nav>
+    <div class="main-content">
+        <div id="array-visualizer">
+            <div id="bars-container">
+                <!-- filled with js -->
+            </div>
+        </div>
+        <div id="running" style="display: none;">no</div>
+        <div class="control-panel">
+            <h3 id="selected-algo">Algorithm: Bubble Sort</h3>
+            <div class="control size-slider-card">
+                <p id="size-slider-label" class="slider-label active">Input Size</p>
+                <input id="size-slider" type="range" min="4" max="50" step="1" value="25">
+            </div>
+            <div class="control speed-slider-card">
+                <p class="slider-label">Speed</p>
+                <input id="speed-slider" type="range" min="1" max="20" step="0.1" value="10">
+            </div>
+            <div class="control button-card">
+                <input class="control-button active" id="random-input-button" type="button" value="Random Input"> 
+            </div>
+            <div class="control button-card">
+                <input class="control-button" id="reset-button" type="button" value="Reset"> 
+            </div>
+        </div>
+    </div>
+</body>
+</html>
