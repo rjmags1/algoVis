@@ -2,7 +2,8 @@ const MAX_ELEMENT = 99;
 const MIN_ELEMENT = 1;
 const MIN_ANIM_SPEED = 2;
 const DEFAULT_COLOR = document.getElementById("title-header").style.backgroundColor;
-const SORTED_COLOR = "purple";
+export const SORTED_COLOR = "purple";
+export const SELECT_COLOR = "grey";
 
 // EXPORTS--------------------------------------------------------
 export var array = [];
@@ -49,40 +50,39 @@ export const paintFreshArray = function() {
 
 export const paintBar = async function(i, color, transient=false) {
     let bar = getBar(i);
-    bar.style.transition = "background-color " + getCurrentSpeed() + "s step-start";
+    let oldColor = bar.style.backgroundColor;
+    bar.style.backgroundColor = color;
     return new Promise(resolve => {
-        bar.style.backgroundColor = color;
-        bar.addEventListener("transitionend", () => {
-            bar.style.transition = "";
-            if (transient) bar.style.backgroundColor = DEFAULT_COLOR;
+        setTimeout(() => {
+            if (transient) bar.style.backgroundColor = oldColor;
             resolve();
-        }, { once: true });
-    })
+        }, getCurrentSpeed())
+    });
 }
 
-export const swapBars = async function(i, j) {
+export const swapBars = async function(i, j, oc1=false, oc2=false) {
     let first = getBar(i), second = getBar(j);
-    let firstH = first.style.height, secondH = second.style.height;
-    first.style.transition = "background-color " + getCurrentSpeed() + "s step-start";
-    second.style.transition = "background-color " + getCurrentSpeed() + "s step-start";
+    oc1 = oc1 ? first.style.backgroundColor : DEFAULT_COLOR;
+    oc2 = oc2 ? second.style.backgroundColor : DEFAULT_COLOR;
+    first.style.backgroundColor = "red", second.style.backgroundColor = "red";
     return new Promise(resolve => {
-        first.style.backgroundColor = "red", second.style.backgroundColor = "red";
-        second.addEventListener("transitionend", () => {
-            first.style.transition = "", second.style.transition = "";
-            first.style.backgroundColor = DEFAULT_COLOR, second.style.backgroundColor = DEFAULT_COLOR;
-            first.style.height = secondH, second.style.height = firstH;
+        setTimeout(() => {
+            let h1 = first.style.height, h2 = second.style.height;
+            first.style.height = h2, second.style.height = h1;
+            first.style.backgroundColor = oc2, second.style.backgroundColor = oc1;
             getLabel(i).innerHTML = array[j], getLabel(j).innerHTML = array[i];
             let temp = array[i];
-            array[i] = array[j];
-            array[j] = temp;
+            array[i] = array[j], array[j] = temp;
             resolve();
-        }, { once: true });
+        }, getCurrentSpeed())
     })
 }
 
 export const unpaintBar = (i) => getBar(i).style.backgroundColor = DEFAULT_COLOR;
 
 export const instantPaintSortedBar = (i) => getBar(i).style.backgroundColor = SORTED_COLOR;
+
+export const instantPaintBar = (i) => getBar(i).style.backgroundColor = SELECT_COLOR;
 
 export const doSortedAnimation = async function() {
     for (let i = 0; i < array.length; i++) {
@@ -91,13 +91,16 @@ export const doSortedAnimation = async function() {
     await new Promise(r => { setTimeout(() => r(), 500)});
     for (let i = 0; i < array.length; i++) {
         getBar(i).style.backgroundColor = SORTED_COLOR;
-        await new Promise(r => { setTimeout(() => r(), 100); });
+        await new Promise(r => { setTimeout(() => r(), 50); });
+    }
+    for (let i = 0; i < array.length; i++) {
+        getBar(i).style.backgroundColor = DEFAULT_COLOR;
     }
 }
 
 // PRIVATE MODULE METHODS -----------------------------------------------------
 
-// param size is an integer between in [1, 99]
+// param size is an integer in [1, 99]
 const createNewBarCard = function(size) {
     let card = document.createElement("div");
     card.setAttribute("class", "bar-card");
@@ -133,7 +136,7 @@ const removeOldBars = function() {
 const appendCard = (card) => document.getElementById("bars-container").appendChild(card);
 
 // getters
-const getCurrentSpeed = () => String(MIN_ANIM_SPEED / getSpeedSliderValue());
+const getCurrentSpeed = () => (MIN_ANIM_SPEED / getSpeedSliderValue()) * 1000;
 const getSizeSliderValue = () => Number(document.getElementById("size-slider").value);
 const getSpeedSliderValue = () => Number(document.getElementById("speed-slider").value);
 const getRandomElement = () => Math.floor(Math.random() * (MAX_ELEMENT - MIN_ELEMENT + 1) + MIN_ELEMENT);
