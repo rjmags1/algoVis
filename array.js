@@ -48,6 +48,7 @@ export const paintFreshArray = function() {
     }
 }
 
+// paint bar a particular color in one animation
 export const paintBar = async function(i, color, transient=false) {
     let bar = getBar(i);
     let oldColor = bar.style.backgroundColor;
@@ -60,6 +61,8 @@ export const paintBar = async function(i, color, transient=false) {
     });
 }
 
+// swaps two bars in one animation, paints them red before switch, then after switch 
+// paints them oc1 and oc2 respectively if specified, otherwise default color
 export const swapBars = async function(i, j, oc1=false, oc2=false) {
     let first = getBar(i), second = getBar(j);
     oc1 = oc1 ? first.style.backgroundColor : DEFAULT_COLOR;
@@ -78,12 +81,7 @@ export const swapBars = async function(i, j, oc1=false, oc2=false) {
     })
 }
 
-export const unpaintBar = (i) => getBar(i).style.backgroundColor = DEFAULT_COLOR;
-
-export const instantPaintSortedBar = (i) => getBar(i).style.backgroundColor = SORTED_COLOR;
-
-export const instantPaintBar = (i) => getBar(i).style.backgroundColor = SELECT_COLOR;
-
+// performs the sorted animation, should only be called after successful run
 export const doSortedAnimation = async function() {
     for (let i = 0; i < array.length; i++) {
         getBar(i).style.backgroundColor = "orange";
@@ -91,14 +89,35 @@ export const doSortedAnimation = async function() {
     await new Promise(r => { setTimeout(() => r(), 500)});
     for (let i = 0; i < array.length; i++) {
         getBar(i).style.backgroundColor = SORTED_COLOR;
-        await new Promise(r => { setTimeout(() => r(), 50); });
+        await new Promise(r => { setTimeout(() => r(), 25); });
     }
     for (let i = 0; i < array.length; i++) {
         getBar(i).style.backgroundColor = DEFAULT_COLOR;
     }
 }
 
-// PRIVATE MODULE METHODS -----------------------------------------------------
+// replaces a bar with another with newHeight height, in one animation
+export const replaceBar = async function(i, newHeight) {
+    let bar = getBar(i);
+    return new Promise(resolve => {
+        setTimeout(() => {
+            bar.style.height = String(newHeight) + "%";
+            getLabel(i).innerHTML = String(newHeight);
+            bar.style.backgroundColor = SORTED_COLOR;
+            resolve();
+        }, getCurrentSpeed());
+    })
+}
+
+// instantly reverts a bar to the default color
+export const unpaintBar = (i) => getBar(i).style.backgroundColor = DEFAULT_COLOR;
+
+export const instantPaintSortedBar = (i) => getBar(i).style.backgroundColor = SORTED_COLOR;
+
+export const instantPaintBar = (i, color=null) => color === null ? getBar(i).style.backgroundColor = SELECT_COLOR : getBar(i).style.backgroundColor = color;
+
+
+// PRIVATE METHODS -----------------------------------------------------
 
 // param size is an integer in [1, 99]
 const createNewBarCard = function(size) {

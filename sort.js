@@ -1,6 +1,8 @@
-import { SORTED_COLOR, SELECT_COLOR, array, paintBar, instantPaintBar, unpaintBar, swapBars, instantPaintSortedBar, doSortedAnimation } from "./array.js";
+import { SORTED_COLOR, SELECT_COLOR, replaceBar, array, paintBar, instantPaintBar, unpaintBar, swapBars, instantPaintSortedBar, doSortedAnimation } from "./array.js";
 import { reset } from "./index.js";
 
+
+// EXPORTS ---------------------------------------------------------
 export const doBubbleSort = async function() {
     let sorted;
     for (let i = array.length - 1; i > 0; i--) {
@@ -20,6 +22,7 @@ export const doBubbleSort = async function() {
     await doSortedAnimation();
     return false;
 }
+
 
 export const doInsertionSort = async function() {
     let i, j;
@@ -41,6 +44,7 @@ export const doInsertionSort = async function() {
     await doSortedAnimation();
     return false;
 }
+
 
 export const doSelectionSort = async function() {
     let k;
@@ -75,11 +79,13 @@ export const doSelectionSort = async function() {
     return false;
 }
 
+
 export const doQuickSort = async function() {
     let r = await quicksort(0, array.length - 1);
     if (!r) await doSortedAnimation();
     return r;
 }
+
 
 export const doHeapSort = async function() {
     let r = await maxHeapify(array);
@@ -94,8 +100,81 @@ export const doHeapSort = async function() {
     return r;
 }
 
-export const doMergeSort = async function() {
 
+export const doMergeSort = async function() {
+    let r = await mergeSort(0, array.length - 1);
+    if (r !== null) await doSortedAnimation();
+    return r === null;
+}
+
+
+// PRIVATE METHODS -----------------------------------------------
+const mergeSort = async function(start, end) {
+    if (start > end) return [];
+    if (start === end) {
+        await paintBar(start, "blue");
+        instantPaintSortedBar(start);
+        if (reset()) return null;
+        return [array[start]];
+    }
+
+    let mid = Math.floor((start + end) / 2);
+    let sortedLeftHalf = await mergeSort(start, mid);
+    if (sortedLeftHalf === null) return null;
+    let sortedRightHalf = await mergeSort(mid + 1, end);
+    if (sortedRightHalf === null) return null;
+
+    let merged = await merge(sortedLeftHalf, sortedRightHalf, start);
+    return merged;
+}
+
+const merge = async function(leftHalf, rightHalf, start) {
+    let merged = [];
+    let i = 0;
+    let j = 0;
+    let k = start;
+    let n;
+    for (n = start; n < start + leftHalf.length + rightHalf.length - 1; n++) { instantPaintBar(n, "blue") }
+    await paintBar(n, "blue");
+    if (reset()) return null;
+
+    while (i < leftHalf.length && j < rightHalf.length) {
+        if (leftHalf[i] <= rightHalf[j]) {
+            merged.push(leftHalf[i]);
+            await replaceBar(k, leftHalf[i]);
+            array[k] = leftHalf[i];
+            if (reset()) return null;
+            i++;
+        }
+        else {
+            merged.push(rightHalf[j]);
+            await replaceBar(k, rightHalf[j]);
+            array[k] = rightHalf[j];
+            if (reset()) return null;
+            j++;
+        }
+        k++;
+    }
+
+    while (i < leftHalf.length) {
+        merged.push(leftHalf[i]);
+        await replaceBar(k, leftHalf[i]);
+        array[k] = leftHalf[i];
+        if (reset()) return null;
+        i++;
+        k++;
+    }
+
+    while (j < rightHalf.length) {
+        merged.push(rightHalf[j]);
+        await replaceBar(k, rightHalf[j]);
+        array[k] = rightHalf[j];
+        if (reset()) return null;
+        j++;
+        k++;
+    }
+
+    return merged;
 }
 
 const sortBarByHeapRemove = async function(heapEnd) {
