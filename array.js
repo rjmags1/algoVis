@@ -1,3 +1,5 @@
+import { reset } from "./index.js";
+
 const MAX_ELEMENT = 99;
 const MIN_ELEMENT = 1;
 const MIN_ANIM_SPEED = 2;
@@ -11,6 +13,7 @@ export var resetArray = [];
 
 // add or remove elements from the array, doing any necessary DOM painting or removal
 export const resizeArray = function() {
+    for (let i = 0; i < array.length; i++) instantPaintBar(i, DEFAULT_COLOR);
     let currentLength = array.length;
     let target = getSizeSliderValue();
     let cards = getBarCards();
@@ -38,6 +41,18 @@ export const randomArray = function() {
     paintFreshArray();
 }
 
+export const sortForSearch = async function() {
+    let sorted = array.slice().sort((a, b) => a - b);
+    for (let i = 0; i < sorted.length; i++) {
+        replaceBar(i, sorted[i], true);
+        array[i] = sorted[i];
+        instantPaintSortedBar(i);
+    }
+    return new Promise(resolve => {
+        setTimeout(() => { resolve(); }, getCurrentSpeed());
+    })
+}
+
 // gets rid of array on screen if any prior to call, fills internal array and paints it
 export const paintFreshArray = function() {
     if (array.length === 0) fillArray();
@@ -49,15 +64,16 @@ export const paintFreshArray = function() {
 }
 
 // paint bar a particular color in one animation
-export const paintBar = async function(i, color, transient=false) {
+export const paintBar = async function(i, color, transient=false, speed=null) {
     let bar = getBar(i);
     let oldColor = bar.style.backgroundColor;
     bar.style.backgroundColor = color;
+    if (speed === null) speed = getCurrentSpeed();
     return new Promise(resolve => {
         setTimeout(() => {
             if (transient) bar.style.backgroundColor = oldColor;
             resolve();
-        }, getCurrentSpeed())
+        }, speed)
     });
 }
 
@@ -96,9 +112,27 @@ export const doSortedAnimation = async function() {
     }
 }
 
-// replaces a bar with another with newHeight height, in one animation
-export const replaceBar = async function(i, newHeight) {
+export const foundTargetAnimation = async function(mid) {
+    for (let i = 0; i < 10; i++) { // flash found
+        if (i % 2 === 0) await paintBar(mid, "black", false, 200);
+        else await paintBar(mid, "red", false, 200);
+    }
+
+    for (let i = 0; i < array.length; i++) { // restore other bars to purple
+        if (i === mid) continue;
+        instantPaintSortedBar(i);
+    }
+}
+
+// replaces a bar with another with newHeight height
+export const replaceBar = async function(i, newHeight, instant=false) {
     let bar = getBar(i);
+    if (instant) {
+        bar.style.height = String(newHeight) + "%";
+        getLabel(i).innerHTML = String(newHeight);
+        return;
+    }
+
     return new Promise(resolve => {
         setTimeout(() => {
             bar.style.height = String(newHeight) + "%";

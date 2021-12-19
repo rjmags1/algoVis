@@ -1,4 +1,5 @@
 import * as sort from "./sort.js";
+import * as search from "./search.js";
 import { paintFreshArray, resizeArray, randomArray } from "./array.js";
 
 // globals
@@ -45,11 +46,43 @@ const doSort = async function() {
 }
 
 const doSearch = async function() {
-    //
+    let reset;
+    let target = document.getElementById("search-target").value;
+    if (target.match(/^\d+$/) === null) { // alert about not entering a number and return
+        alert("Please enter a number to search for in the array!");
+        return;
+    }
+
+    target = Number(target);
+    document.getElementById("running").innerHTML = "yes";
+    alterControlsForRun();
+    disableSearchInput()
+    if (selected === "Binary Search") reset = await search.doBinarySearch(target);
+    if (selected === "Ternary Search") reset = await search.doTernarySearch(target);
+    if (reset) paintFreshArray();
+    resetControls();
+    enableSearchInput()
+    document.getElementById("running").innerHTML = "no";
 }
 
 const doGraph = async function() {
     //
+}
+
+const disableSearchInput = function() {
+    let label = document.getElementById("search-target-label");
+    let input = document.getElementById("search-target");
+    label.style.color = "grey";
+    input.backgroundColor = "grey";
+    input.disabled = true;
+}
+
+const enableSearchInput = function() {
+    let label = document.getElementById("search-target-label");
+    let input = document.getElementById("search-target");
+    label.style.color = "white";
+    input.backgroundColor = "white";
+    input.disabled = false;
 }
 
 const alterControlsForRun = function() {
@@ -121,6 +154,11 @@ const bindSubmenuButtons = function() {
 
 const updateSelectedAlgo = function(e) {
     selected = e.target.innerHTML;
+
+    let searchTargetCard = document.getElementById("search-target-card")
+    if (selected.search("Search") > -1) searchTargetCard.style.display = "inline-block";
+    else searchTargetCard.style.display = "none";
+
     document.getElementById("selected-algo").innerHTML = "Algorithm: " + selected;
     selectedType = "Graph";
     if (selected in {"Bubble Sort":true, "Insertion Sort":true, "Selection Sort":true, "Quick Sort":true, "Heap Sort":true, "Merge Sort":true}) selectedType = "Sort";

@@ -135,15 +135,12 @@
 
 .control {
     margin: 0 1%;
-}
-
-.control.button-card {
-    width: 120px; 
+    flex: 1;
 }
 
 .control-button {
     padding: 4px;
-    width: 100%;
+    width: 80%;
     background-color: #254441;
     color: #f6f7f8;
     border-radius: 10px;
@@ -155,8 +152,24 @@
     background-color: tomato;
 }
 
-.slider-label {
+.input-label {
     text-shadow: 1px 1px 2px black;
+}
+
+.search-target-input {
+    width: 3rem;
+    border: 1px solid black;
+    margin-top: 3%;
+    border-radius: 5px;
+}
+
+.search-target-card {
+    display: none;
+}
+
+.target-label {
+    display: inline;
+    margin-right: 3%;
 }
 
 /* cross browser compatible styles for range inputs */
