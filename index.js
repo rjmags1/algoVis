@@ -1,6 +1,7 @@
 import * as sort from "./sort.js";
 import * as search from "./search.js";
-import { paintFreshArray, resizeArray, randomArray } from "./array.js";
+import { paintFreshArray, resizeArray, randomArray, MIN_ANIM_SPEED } from "./array.js";
+import {  paintFreshGraph } from "./graph.js";
 
 // globals
 var selected = "Bubble Sort";
@@ -95,7 +96,8 @@ const alterControlsForRun = function() {
     document.getElementById("play-button").style.backgroundColor = "grey";
     document.getElementById("play-button").disabled = true;
     document.getElementById("play-button").style.cursor = "default";
-    document.getElementById("reset-button").removeEventListener("click", paintFreshArray);
+    if (selectedGraphAlgo()) document.getElementById("reset-button").removeEventListener("click", paintFreshGraph);
+    else document.getElementById("reset-button").removeEventListener("click", paintFreshArray);
     document.getElementById("reset-button").addEventListener("click", stopRun);
     unbindSubmenuButtons();
 }
@@ -110,7 +112,8 @@ const resetControls = function() {
     document.getElementById("play-button").style = "";
     document.getElementById("play-button").disabled = false;
     document.getElementById("reset-button").removeEventListener("click", stopRun);
-    document.getElementById("reset-button").addEventListener("click", paintFreshArray);
+    if (selectedGraphAlgo()) document.getElementById("reset-button").addEventListener("click", paintFreshGraph);
+    else document.getElementById("reset-button").addEventListener("click", paintFreshArray);
     bindSubmenuButtons();
 }
 
@@ -153,7 +156,18 @@ const bindSubmenuButtons = function() {
 }
 
 const updateSelectedAlgo = function(e) {
+    let resetButton = document.getElementById("reset-button");
     selected = e.target.innerHTML;
+    if (selectedGraphAlgo() && !(prevAlgoWasGraph())) {
+        displayGraph();
+        resetButton.removeEventListener("click", paintFreshArray);
+        resetButton.addEventListener("click", paintFreshGraph);
+    }
+    else if (!(selectedGraphAlgo()) && prevAlgoWasGraph()) {
+        displayArray();
+        resetButton.removeEventListener("click", paintFreshGraph);
+        resetButton.addEventListener("click", paintFreshArray);
+    }
 
     let searchTargetCard = document.getElementById("search-target-card")
     if (selected.search("Search") > -1) searchTargetCard.style.display = "inline-block";
@@ -172,4 +186,33 @@ const algoRunning = () => document.getElementById("running").innerHTML === "yes"
 // stop a a currently running algorithm
 const stopRun = () => document.getElementById("running").innerHTML = "no";
 
+const selectedGraphAlgo = () => {
+    let graphAlgos = ["DFS", "BFS", "Dijsktra", "Top Sort"];
+    for (let i = 0; i < graphAlgos.length; i++) {
+        if (selected === graphAlgos[i]) return true;
+    }
+    return false;
+}
+
 export const reset = () => document.getElementById("running").innerHTML === "no";
+export const getCurrentSpeed = () => (MIN_ANIM_SPEED / getSpeedSliderValue()) * 1000;
+export const getSizeSliderValue = () => Number(document.getElementById("size-slider").value);
+export const getSpeedSliderValue = () => Number(document.getElementById("speed-slider").value);
+
+const displayArray = () => {
+    document.getElementById("graph-visualizer").style.display = "none";
+    document.getElementById("array-visualizer").style.display = "block";
+    document.getElementById("size-slider").addEventListener("mouseup", paintFreshArray);
+    document.getElementById("size-slider").removeEventListener("mouseup", paintFreshGraph);
+    paintFreshArray();
+}
+
+const displayGraph = () => {
+    document.getElementById("graph-visualizer").style.display = "flex";
+    document.getElementById("array-visualizer").style.display = "none";
+    document.getElementById("size-slider").addEventListener("mouseup", paintFreshGraph);
+    document.getElementById("size-slider").removeEventListener("mouseup", paintFreshArray);
+    paintFreshGraph();
+}
+
+const prevAlgoWasGraph = () => document.getElementById("array-visualizer").style.display === "none";

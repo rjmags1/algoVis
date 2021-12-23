@@ -115,6 +115,13 @@
 }
 
 
+/* GRAPH VISUALIZER -------------------------------------------- */
+#graph-visualizer {
+    display: none;
+    height: max(calc(100% - 56px), 600px);
+    align-items: center;
+    justify-content: center;
+}
 
 
 /* CONTROL PANEL ---------------------------------------------- */

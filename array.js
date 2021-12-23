@@ -1,11 +1,11 @@
-import { reset } from "./index.js";
+import { getCurrentSpeed, getSizeSliderValue } from "./index.js";
 
 const MAX_ELEMENT = 99;
 const MIN_ELEMENT = 1;
-const MIN_ANIM_SPEED = 2;
 const DEFAULT_COLOR = document.getElementById("title-header").style.backgroundColor;
 export const SORTED_COLOR = "purple";
 export const SELECT_COLOR = "grey";
+export const MIN_ANIM_SPEED = 2;
 
 // EXPORTS--------------------------------------------------------
 export var array = [];
@@ -189,9 +189,6 @@ const removeOldBars = function() {
 const appendCard = (card) => document.getElementById("bars-container").appendChild(card);
 
 // getters
-const getCurrentSpeed = () => (MIN_ANIM_SPEED / getSpeedSliderValue()) * 1000;
-const getSizeSliderValue = () => Number(document.getElementById("size-slider").value);
-const getSpeedSliderValue = () => Number(document.getElementById("speed-slider").value);
 const getRandomElement = () => Math.floor(Math.random() * (MAX_ELEMENT - MIN_ELEMENT + 1) + MIN_ELEMENT);
 const getBarCards = () => document.getElementById("bars-container").children;
 const getBar = (i) => getBarCards()[i].firstChild;
