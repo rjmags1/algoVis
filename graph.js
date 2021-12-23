@@ -1,4 +1,4 @@
-import { getSizeSliderValue } from "./index.js";
+import { getSizeSliderValue, getCurrentSpeed } from "./index.js";
 
 const CANVAS_WIDTH = 700;
 const CANVAS_HEIGHT = 600;
@@ -9,7 +9,7 @@ const LABELS_TO_EDGES = [
                         [4, 9],
                         [],
                         [3, 5, 14], // 4
-                        [6, 18],
+                        [18],
                         [],
                         [8, 19],
                         [20], // 8
@@ -31,10 +31,56 @@ const LABELS_TO_EDGES = [
                         [23]
                         ];
 
+export var displayedNodeData = {};
+export var context = null;
 var nodeData = [];
-var displayedNodeData = {};
+
+export const paintEdge = async function(startCanvasData, endCanvasData, color) {
+    instantPaintEdge(startCanvasData, endCanvasData, color);
+    return new Promise(resolve => {
+        setTimeout(() => { resolve(); }, getCurrentSpeed());
+    });
+};
+
+export const paintNode = async function(canvasData, color, label) {
+    instantPaintNode(canvasData, color, label);
+    return new Promise(resolve => {
+        setTimeout(() => { resolve(); }, getCurrentSpeed());
+    });
+};
+
+export const instantPaintNode = function(canvasData, color, label) {
+    // redraw node
+    context.beginPath();
+    context.fillStyle = color;
+    context.arc(canvasData.x, canvasData.y, canvasData.radius, 0, Math.PI * 2);
+    context.strokeStyle = "#000000";
+    context.stroke();
+    context.fill();
+
+    // label node
+    context.fillStyle = "#FFFFFF";
+    context.strokeStyle = "#FFFFFF";
+    context.font = "20px monospace";
+    if (label.length === 1) context.fillText(label, canvasData.x - 5, canvasData.y + 7);
+    else context.fillText(label, canvasData.x - 10, canvasData.y + 7);
+};
+
+export const instantPaintEdge = function(startCanvasData, endCanvasData, color) {
+    let r = startCanvasData.radius;
+    let x1, y1, x2, y2;
+    x1 = startCanvasData.x, y1 = startCanvasData.y, x2 = endCanvasData.x, y2 = endCanvasData.y;
+    let lStart, lEnd;
+    let m = x1 === x2 ? Infinity : (y1 - y2) / (x1 - x2);
+    let c = y1 - m * x1;
+    [lStart, lEnd] = getEdgeTips(x1, y1, x2, y2, r, m, c);
+    drawLine(lStart, lEnd, 2, color);
+    drawTriangle(lStart, lEnd, x2, y2, m, c, color);
+};
 
 export const paintFreshGraph = function() {
+    let randomButton = document.getElementById("random-input-button");
+    if (randomButton.style.display !== "none") randomButton.style.display = "none";
     let canvas = document.getElementById("graph-canvas");
     canvas.remove();
     canvas = document.createElement("canvas");
@@ -43,28 +89,17 @@ export const paintFreshGraph = function() {
     canvas.width = CANVAS_WIDTH;
     canvas.height = CANVAS_HEIGHT;
 
-    const context = canvas.getContext('2d');
+    context = canvas.getContext('2d');
     const numNodes = getSizeSliderValue() / 2;
     if (nodeData.length === 0) generateNodeData();
-    drawNodes(numNodes, context);
+    drawNodes(numNodes);
     // draw nodes. max 25 min 2
-    drawEdges(numNodes, context);
+    drawEdges(numNodes);
     updateDisplayedNodeData(numNodes);
-    console.log(displayedNodeData)
+    // console.log(displayedNodeData)
 }
 
-export const doDFS = async function() {
-    let r = await dfs(0, displayedNodeData);
-    return r;
-}
-
-const dfs = async function(current, nodes) {
-    if (current.visited) return true;
-
-    // remove random input button for graph algos
-}
-
-const drawEdges = function(numNodes, context) {
+const drawEdges = function(numNodes) {
     const map = getLabelToDataMap(numNodes);
     let lastDrawnEdge = numNodes - 1;
     let edges, destDrawn;
@@ -75,19 +110,21 @@ const drawEdges = function(numNodes, context) {
         for (let j = 0; j < edges.length; j++) {
             let dest = edges[j];
             destDrawn = lastDrawnEdge >= dest;
-            if (destDrawn) drawEdge(map[i], map[dest], context);
+            if (destDrawn) drawEdge(map[i], map[dest]);
         }
     }
 }
 
 const updateDisplayedNodeData = function(numNodes) {
-    let nodeData;
+    let d;
+    let labelToCanvasData = getLabelToDataMap(numNodes);
     displayedNodeData = {};
     for (let n = 0; n < numNodes; n++) {
-        nodeData = {};
-        nodeData.edges = getDisplayedEdges(n, numNodes - 1);
-        nodeData.visited = false;
-        displayedNodeData[String(n)] = nodeData;
+        d = {};
+        d.edges = getDisplayedEdges(n, numNodes - 1);
+        d.visited = false;
+        d.canvasData = labelToCanvasData[n];
+        displayedNodeData[String(n)] = d;
     }
 }
 
@@ -100,7 +137,7 @@ const getDisplayedEdges = function(nodeLabel, lastNode) {
     return result;
 }
 
-const drawEdge = function(startData, endData, context) {
+const drawEdge = function(startData, endData) {
     let r = startData.radius;
     let x1, y1, x2, y2;
     x1 = startData.x, y1 = startData.y, x2 = endData.x, y2 = endData.y;
@@ -108,11 +145,11 @@ const drawEdge = function(startData, endData, context) {
     let m = x1 === x2 ? Infinity : (y1 - y2) / (x1 - x2);
     let c = y1 - m * x1;
     [lStart, lEnd] = getEdgeTips(x1, y1, x2, y2, r, m, c);
-    drawLine(lStart, lEnd, 2, context);
-    drawTriangle(lStart, lEnd, x2, y2, m, c, context);
+    drawLine(lStart, lEnd, 2);
+    drawTriangle(lStart, lEnd, x2, y2, m, c);
 }
 
-const drawTriangle = function(lStart, lEnd, nodeCenterX, nodeCenterY, m, c, context) {
+const drawTriangle = function(lStart, lEnd, nodeCenterX, nodeCenterY, m, c, color) {
     let baseMidPoint, baseEdges;
     if (m === Infinity) {
         baseMidPoint = lStart[1] > lEnd[1] ? [lEnd[0], lEnd[1] + 20] : [lEnd[0], lEnd[1] - 20];
@@ -134,6 +171,7 @@ const drawTriangle = function(lStart, lEnd, nodeCenterX, nodeCenterY, m, c, cont
     x3 = baseEdges[1][0], y3 = baseEdges[1][1];
 
     context.beginPath();
+    context.fillStyle = color;
     context.moveTo(x1, y1);
     context.lineTo(x2, y2);
     context.lineTo(x3, y3);
@@ -165,9 +203,10 @@ const getLinePointsDistanceAwayFromXY = function(d, x, y, m, c) {
     return [[x1, y1], [x2, y2]];
 }
 
-const drawLine = function(lStart, lEnd, width, context) {
+const drawLine = function(lStart, lEnd, width, color) {
     context.beginPath();
     context.moveTo(lStart[0], lStart[1]);
+    context.strokeStyle = color;
     context.lineTo(lEnd[0], lEnd[1]);
     context.lineWidth = width;
     context.stroke();
@@ -226,14 +265,14 @@ const getLabelToDataMap = function(numNodes) {
     return map;
 }
 
-const drawNodes = function(numNodes, context) {
+const drawNodes = function(numNodes) {
     for (let i = 0; i < numNodes; i++) {
         let nodeInfo = nodeData[DRAW_ORDER[i]];
-        drawNode(nodeInfo, String(i), context);
+        drawNode(nodeInfo, String(i));
     }
 }
 
-const drawNode = function(nodeInfo, label, context) {
+const drawNode = function(nodeInfo, label) {
     // draw node as circle
     context.beginPath();
     context.fillStyle = nodeInfo.fillStyle;

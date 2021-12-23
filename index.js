@@ -1,12 +1,12 @@
 import * as sort from "./sort.js";
 import * as search from "./search.js";
+import * as graphAlgos from "./graphAlgos.js";
 import { paintFreshArray, resizeArray, randomArray, MIN_ANIM_SPEED } from "./array.js";
-import {  paintFreshGraph } from "./graph.js";
+import { paintFreshGraph } from "./graph.js";
 
 // globals
 var selected = "Bubble Sort";
 var selectedType = "Sort";
-
 
 // load actions
 document.addEventListener("DOMContentLoaded", () => {
@@ -28,7 +28,7 @@ const runAlgorithm = async function() {
     let algoType = document.getElementById("play-button").value;
     if (algoType === "Sort") await doSort();
     else if (algoType === "Search") await doSearch();
-    else if (algoType === "Run Graph") await doGraph();
+    else if (algoType === "Run") await doGraph();
 }
 
 const doSort = async function() {
@@ -67,7 +67,14 @@ const doSearch = async function() {
 }
 
 const doGraph = async function() {
-    //
+    let reset;
+    document.getElementById("running").innerHTML = "yes";
+    alterControlsForRun();
+    if (selected === "DFS") reset = await graphAlgos.doDFS();
+
+    if (reset) paintFreshGraph();
+    resetControls();
+    document.getElementById("running").innerHTML = "no";
 }
 
 const disableSearchInput = function() {
@@ -109,6 +116,7 @@ const resetControls = function() {
     document.getElementById("random-input-button").style.backgroundColor = "#254441";
     document.getElementById("random-input-button").removeAttribute("style");
     document.getElementById("random-input-button").disabled = false;
+    if (selectedGraphAlgo()) document.getElementById("random-input-button").style.display = "none";
     document.getElementById("play-button").style = "";
     document.getElementById("play-button").disabled = false;
     document.getElementById("reset-button").removeEventListener("click", stopRun);
@@ -177,7 +185,7 @@ const updateSelectedAlgo = function(e) {
     selectedType = "Graph";
     if (selected in {"Bubble Sort":true, "Insertion Sort":true, "Selection Sort":true, "Quick Sort":true, "Heap Sort":true, "Merge Sort":true}) selectedType = "Sort";
     else if (selected in {"Binary Search":true, "Ternary Search":true}) selectedType = "Search";
-    document.getElementById("play-button").value = selectedType;
+    document.getElementById("play-button").value = selectedType === "Graph" ? "Run" : selectedType;
 }
 
 // checks if algorithm is currently running
@@ -202,6 +210,7 @@ export const getSpeedSliderValue = () => Number(document.getElementById("speed-s
 const displayArray = () => {
     document.getElementById("graph-visualizer").style.display = "none";
     document.getElementById("array-visualizer").style.display = "block";
+    document.getElementById("random-input-button").style.display = "inline-block";
     document.getElementById("size-slider").addEventListener("mouseup", paintFreshArray);
     document.getElementById("size-slider").removeEventListener("mouseup", paintFreshGraph);
     paintFreshArray();
@@ -210,6 +219,7 @@ const displayArray = () => {
 const displayGraph = () => {
     document.getElementById("graph-visualizer").style.display = "flex";
     document.getElementById("array-visualizer").style.display = "none";
+    document.getElementById("random-input-button").style.display = "none";
     document.getElementById("size-slider").addEventListener("mouseup", paintFreshGraph);
     document.getElementById("size-slider").removeEventListener("mouseup", paintFreshArray);
     paintFreshGraph();
