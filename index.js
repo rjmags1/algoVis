@@ -70,7 +70,9 @@ const doGraph = async function() {
     let reset;
     document.getElementById("running").innerHTML = "yes";
     alterControlsForRun();
+    paintFreshGraph();
     if (selected === "DFS") reset = await graphAlgos.doDFS();
+    if (selected === "BFS") reset = await graphAlgos.doBFS();
 
     if (reset) paintFreshGraph();
     resetControls();

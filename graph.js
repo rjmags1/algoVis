@@ -35,6 +35,16 @@ export var displayedNodeData = {};
 export var context = null;
 var nodeData = [];
 
+export const freshVisitedEdgesMap = function(numNodes) {
+    let map = {};
+    for (let start = 0; start < numNodes; start++) {
+        for (const dest of LABELS_TO_EDGES[start]) {
+            map[String(start) + "-" + String(dest)] = false;
+        }
+    }
+    return map;
+}
+
 export const paintEdge = async function(startCanvasData, endCanvasData, color) {
     instantPaintEdge(startCanvasData, endCanvasData, color);
     return new Promise(resolve => {
