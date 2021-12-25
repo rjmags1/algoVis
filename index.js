@@ -2,7 +2,7 @@ import * as sort from "./sort.js";
 import * as search from "./search.js";
 import * as graphAlgos from "./graphAlgos.js";
 import { paintFreshArray, resizeArray, randomArray, MIN_ANIM_SPEED } from "./array.js";
-import { paintFreshGraph } from "./graph.js";
+import { paintFreshGraph, drawEdgeWeights, drawMinDistancesTable } from "./graph.js";
 
 // globals
 var selected = "Bubble Sort";
@@ -73,7 +73,7 @@ const doGraph = async function() {
     paintFreshGraph();
     if (selected === "DFS") reset = await graphAlgos.doDFS();
     if (selected === "BFS") reset = await graphAlgos.doBFS();
-
+    if (selected === "Dijsktra") reset = await graphAlgos.doDijsktra();
     if (reset) paintFreshGraph();
     resetControls();
     document.getElementById("running").innerHTML = "no";
@@ -166,8 +166,8 @@ const bindSubmenuButtons = function() {
 }
 
 const updateSelectedAlgo = function(e) {
-    let resetButton = document.getElementById("reset-button");
     selected = e.target.innerHTML;
+    let resetButton = document.getElementById("reset-button");
     if (selectedGraphAlgo() && !(prevAlgoWasGraph())) {
         displayGraph();
         resetButton.removeEventListener("click", paintFreshArray);
@@ -179,8 +179,36 @@ const updateSelectedAlgo = function(e) {
         resetButton.addEventListener("click", paintFreshArray);
     }
 
-    let searchTargetCard = document.getElementById("search-target-card")
-    if (selected.search("Search") > -1) searchTargetCard.style.display = "inline-block";
+    let searchTargetCard = document.getElementById("search-target-card");
+    if (selectedGraphAlgo()) {
+        if (selected === "Dijsktra") {
+            // draw edge weights
+            drawEdgeWeights();
+            // draw min distances table
+            drawMinDistancesTable();
+            // insert random weights button
+            // insert start node input
+            dijsktraRandomButton();
+        }
+        else {
+            // remove edge weights
+            paintFreshGraph();
+            // remove min distances table
+            let table = document.getElementById("min-distances-table");
+            if (table !== null) {
+                table.remove();
+                document.getElementsByTagName("caption")[0].remove();
+            }
+            // remove random weights button
+            dijsktraRandomButton(true);
+            // remove start node inputs
+            searchTargetCard.style.display = "none";
+        }
+    }
+    
+
+    if (selected === "Dijsktra") searchTargetCard.firstElementChild.innerText = "Start Node:";
+    if (selected.search("Search") > -1 || selected === "Dijsktra") searchTargetCard.style.display = "inline-block";
     else searchTargetCard.style.display = "none";
 
     document.getElementById("selected-algo").innerHTML = "Algorithm: " + selected;
@@ -188,6 +216,12 @@ const updateSelectedAlgo = function(e) {
     if (selected in {"Bubble Sort":true, "Insertion Sort":true, "Selection Sort":true, "Quick Sort":true, "Heap Sort":true, "Merge Sort":true}) selectedType = "Sort";
     else if (selected in {"Binary Search":true, "Ternary Search":true}) selectedType = "Search";
     document.getElementById("play-button").value = selectedType === "Graph" ? "Run" : selectedType;
+}
+
+const dijsktraRandomButton = function(remove=false) {
+    let randomButton = document.getElementById("random-input-button");
+    randomButton.style.display = remove ? "none" : "inline-block";
+    randomButton.value = remove ? "Random Input" : "Random Edges";
 }
 
 // checks if algorithm is currently running

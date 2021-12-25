@@ -33,6 +33,7 @@ const LABELS_TO_EDGES = [
 
 export var displayedNodeData = {};
 export var context = null;
+var edgesToWeights = {};
 var nodeData = [];
 
 export const freshVisitedEdgesMap = function(numNodes) {
@@ -109,12 +110,88 @@ export const paintFreshGraph = function() {
     // console.log(displayedNodeData)
 }
 
+export const drawEdgeWeights = function() {
+    edgesToWeights = generateShownEdgeWeights();
+    let start, end;
+    for (const [key, weight] of Object.entries(edgesToWeights)) {
+        [start, end] = key.split("-").map(label => Number(label));
+        drawEdgeWeight(displayedNodeData[start].canvasData, displayedNodeData[end].canvasData, weight, "black");
+    }
+}
+
+export const drawMinDistancesTable = function() {
+    let container = document.getElementById("graph-visualizer");
+    container.appendChild(getMinDistancesTable());
+    let caption = document.createElement("caption");
+    caption.innerText = "Min Distances";
+    caption.classList.add("min-distances");
+    container.appendChild(caption);
+}
+
+const getMinDistancesTable = function() {
+    let table = document.createElement("table");
+    table.id = "min-distances-table";
+    table.classList.add("min-distances");
+    let numNodes = Object.keys(displayedNodeData).length
+    let tr, td;
+    for (let r = 0; r < 2; r++) {
+        tr = document.createElement("tr");
+        tr.classList.add("min-distances");
+
+        for (let label = 0; label < numNodes; label++) {
+            td = document.createElement("td");
+            td.classList.add("min-distances");
+            td.classList.add("min-distances-td");
+            td.innerText = r === 0 ? String(label) : "INF";
+            tr.appendChild(td);
+        }
+        table.appendChild(tr);
+    }
+
+    return table;
+}
+
+const generateShownEdgeWeights = function() {
+    let numNodes = getSizeSliderValue() / 2;
+    let result = {};
+    let labelEdges, key;
+    for (let label = 0; label < numNodes; label++) {
+        labelEdges = getDisplayedEdges(label, numNodes - 1);
+        for (let dest of labelEdges) {
+            key = `${label}-${String(dest)}`;
+            result[key] = Math.floor(Math.random() * 5 + 1);
+        }
+    }
+    return result;
+}
+
+const drawEdgeWeight = function(startData, endData, weight, color) {
+    let x1, y1, x2, y2;
+    x1 = startData.x, y1 = startData.y, x2 = endData.x, y2 = endData.y;
+    let m = slope(x1, y1, x2, y2);
+    let [wx, wy] = midpoint(x1, y1, x2, y2);
+    if (m === Infinity) wx += 5;
+    else {
+        wy -= 5;
+        wx -= 5
+    }
+    context.beginPath();
+    context.strokeStyle = color
+    context.font = "14px monospace";
+    context.lineWidth = 0.75;
+    context.strokeText(String(weight), wx, wy);
+}
+
+const midpoint = (x1, y1, x2, y2) => [(x1 + x2) / 2, (y1 + y2) / 2];
+
+const slope = (x1, y1, x2, y2) => x1 - x2 === 0 ? Infinity : (y1 - y2) / (x1 - x2);
+
 const drawEdges = function(numNodes) {
     const map = getLabelToDataMap(numNodes);
     let lastDrawnEdge = numNodes - 1;
     let edges, destDrawn;
-    context.strokeStyle = "#000000";
-    context.fillStyle = "#000000";
+    context.strokeStyle = "grey";
+    context.fillStyle = "grey";
     for (let i = 0; i < numNodes; i++) {
         edges = LABELS_TO_EDGES[i];
         for (let j = 0; j < edges.length; j++) {

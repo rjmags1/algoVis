@@ -13,6 +13,10 @@ export const doBFS = async function() {
     return r;
 }
 
+export const doDijsktra = async function() {
+    //
+}
+
 const bfs = async function(nodes) {
     let label, current, destLabel, dest, edgeLabel;
     let visitedEdges = freshVisitedEdgesMap(Object.keys(nodes).length);

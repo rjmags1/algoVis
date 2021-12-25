@@ -121,8 +121,24 @@
     height: max(calc(100% - 56px), 600px);
     align-items: center;
     justify-content: center;
+    flex-direction: column;
 }
 
+.min-distances {
+    border: 1px solid black;
+    border-collapse: collapse;
+    font-family: monospace;
+}
+
+caption.min-distances {
+    border: none;
+    font-weight: bold;
+}
+
+.min-distances-td {
+    padding: 5px;
+    text-align: center;
+}
 
 /* CONTROL PANEL ---------------------------------------------- */
 .control-panel {
@@ -143,6 +159,7 @@
 .control {
     margin: 0 1%;
     flex: 1;
+    width: 100%;
 }
 
 .control-button {
