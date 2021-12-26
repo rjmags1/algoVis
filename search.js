@@ -1,8 +1,7 @@
-import { array, paintBar, instantPaintBar, sortForSearch, instantPaintSortedBar, foundTargetAnimation, SORTED_COLOR } from "./array.js";
+import { array, paintBar, instantPaintBar, instantPaintSortedBar, foundTargetAnimation, SORTED_COLOR } from "./array.js";
 import { reset } from "./index.js";
 
 export const doBinarySearch = async function(target) {
-    await sortForSearch();
     if (reset()) return true;
     for (let i = 0; i < array.length - 1; i++)  instantPaintBar(i, "blue");
     await paintBar(array.length - 1, "blue");
@@ -13,7 +12,6 @@ export const doBinarySearch = async function(target) {
 }
 
 export const doTernarySearch = async function(target) {
-    await sortForSearch();
     if (reset()) return true;
     for (let i = 0; i < array.length - 1; i++) instantPaintBar(i, "blue");
     await paintBar(array.length - 1, "blue");

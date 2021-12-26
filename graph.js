@@ -90,8 +90,6 @@ export const instantPaintEdge = function(startCanvasData, endCanvasData, color) 
 };
 
 export const paintFreshGraph = function() {
-    let randomButton = document.getElementById("random-input-button");
-    if (randomButton.style.display !== "none") randomButton.style.display = "none";
     let canvas = document.getElementById("graph-canvas");
     canvas.remove();
     canvas = document.createElement("canvas");
@@ -104,13 +102,12 @@ export const paintFreshGraph = function() {
     const numNodes = getSizeSliderValue() / 2;
     if (nodeData.length === 0) generateNodeData();
     drawNodes(numNodes);
-    // draw nodes. max 25 min 2
     drawEdges(numNodes);
     updateDisplayedNodeData(numNodes);
-    // console.log(displayedNodeData)
 }
 
 export const drawEdgeWeights = function() {
+    console.log(displayedNodeData)
     edgesToWeights = generateShownEdgeWeights();
     let start, end;
     for (const [key, weight] of Object.entries(edgesToWeights)) {
@@ -121,14 +118,23 @@ export const drawEdgeWeights = function() {
 
 export const drawMinDistancesTable = function() {
     let container = document.getElementById("graph-visualizer");
-    container.appendChild(getMinDistancesTable());
+    container.appendChild(getFreshMinDistancesTable());
     let caption = document.createElement("caption");
+    caption.id = "min-distances-caption";
     caption.innerText = "Min Distances";
     caption.classList.add("min-distances");
     container.appendChild(caption);
 }
 
-const getMinDistancesTable = function() {
+export const removeMinDistancesTable = function() {
+    let table = document.getElementById("min-distances-table");
+    if (table !== null) {
+        table.remove();
+        document.getElementById("min-distances-caption").remove()
+    }
+}
+
+const getFreshMinDistancesTable = function() {
     let table = document.createElement("table");
     table.id = "min-distances-table";
     table.classList.add("min-distances");

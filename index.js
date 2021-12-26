@@ -2,11 +2,24 @@ import * as sort from "./sort.js";
 import * as search from "./search.js";
 import * as graphAlgos from "./graphAlgos.js";
 import { paintFreshArray, resizeArray, randomArray, MIN_ANIM_SPEED } from "./array.js";
-import { paintFreshGraph, drawEdgeWeights, drawMinDistancesTable } from "./graph.js";
+import { paintFreshGraph, drawEdgeWeights, drawMinDistancesTable, removeMinDistancesTable } from "./graph.js";
 
-// globals
+const SORT_ALGOS = {"Bubble Sort":true,
+                    "Insertion Sort":true,
+                    "Selection Sort":true,
+                    "Quick Sort":true,
+                    "Heap Sort":true,
+                    "Merge Sort":true};
+const SEARCH_ALGOS = {"Binary Search":true,
+                      "Ternary Search":true};
+const GRAPH_ALGOS = {"DFS": true,
+                     "BFS":true,
+                     "Dijsktra":true,
+                     "Top Sort":true};
+
 var selected = "Bubble Sort";
-var selectedType = "Sort";
+
+
 
 // load actions
 document.addEventListener("DOMContentLoaded", () => {
@@ -16,24 +29,24 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 const bindControlPanelInputs = function() {
-    document.getElementById("size-slider").addEventListener("mouseup", resizeArray);
-    document.getElementById("random-input-button").addEventListener("click", randomArray);
-    document.getElementById("play-button").addEventListener("click", runAlgorithm);
-    document.getElementById("reset-button").addEventListener("click", paintFreshArray);
+    getSizeSlider().addEventListener("mouseup", resizeArray);
+    getRandomButton().addEventListener("click", randomArray);
+    getPlayButton().addEventListener("click", runAlgorithm);
+    getResetButton().addEventListener("click", paintFreshArray);
 }
 
 const runAlgorithm = async function() {
     if (algoRunning()) return;
 
-    let algoType = document.getElementById("play-button").value;
+    let algoType = getSelectedType();
     if (algoType === "Sort") await doSort();
     else if (algoType === "Search") await doSearch();
-    else if (algoType === "Run") await doGraph();
+    else if (algoType === "Graph") await doGraph();
 }
 
 const doSort = async function() {
     let reset;
-    document.getElementById("running").innerHTML = "yes";
+    setRunningStatus("yes");
     alterControlsForRun();
     if (selected === "Bubble Sort") reset = await sort.doBubbleSort();
     if (selected === "Insertion Sort") reset = await sort.doInsertionSort();
@@ -42,223 +55,201 @@ const doSort = async function() {
     if (selected === "Heap Sort") reset = await sort.doHeapSort();
     if (selected === "Merge Sort") reset = await sort.doMergeSort();
     if (reset) paintFreshArray();
-    resetControls();
-    document.getElementById("running").innerHTML = "no";
+    resetControlsPostRun();
+    setRunningStatus("no");
 }
 
 const doSearch = async function() {
     let reset;
-    let target = document.getElementById("search-target").value;
-    if (target.match(/^\d+$/) === null) { // alert about not entering a number and return
+    let target = getSearchTargetInput().value;
+    if (!validSearchTarget(target)) {
         alert("Please enter a number to search for in the array!");
         return;
     }
-
     target = Number(target);
-    document.getElementById("running").innerHTML = "yes";
+    setRunningStatus("yes");
     alterControlsForRun();
     disableSearchInput()
     if (selected === "Binary Search") reset = await search.doBinarySearch(target);
     if (selected === "Ternary Search") reset = await search.doTernarySearch(target);
     if (reset) paintFreshArray();
-    resetControls();
+    resetControlsPostRun();
     enableSearchInput()
-    document.getElementById("running").innerHTML = "no";
+    setRunningStatus("no");
 }
 
 const doGraph = async function() {
     let reset;
-    document.getElementById("running").innerHTML = "yes";
+    setRunningStatus("yes");
     alterControlsForRun();
     paintFreshGraph();
     if (selected === "DFS") reset = await graphAlgos.doDFS();
     if (selected === "BFS") reset = await graphAlgos.doBFS();
     if (selected === "Dijsktra") reset = await graphAlgos.doDijsktra();
     if (reset) paintFreshGraph();
-    resetControls();
-    document.getElementById("running").innerHTML = "no";
+    resetControlsPostRun();
+    setRunningStatus("no");
 }
 
 const disableSearchInput = function() {
-    let label = document.getElementById("search-target-label");
-    let input = document.getElementById("search-target");
-    label.style.color = "grey";
-    input.backgroundColor = "grey";
-    input.disabled = true;
+    getSearchTargetLabel().style.color = "grey";
+    getSearchTargetInput().backgroundColor = "grey";
+    getSearchTargetInput().disabled = true;
 }
 
 const enableSearchInput = function() {
-    let label = document.getElementById("search-target-label");
-    let input = document.getElementById("search-target");
-    label.style.color = "white";
-    input.backgroundColor = "white";
-    input.disabled = false;
+    getSearchTargetLabel().style.color = "white";
+    getSearchTargetInput().backgroundColor = "white";
+    getSearchTargetInput().disabled = false;
 }
 
 const alterControlsForRun = function() {
-    document.getElementById("size-slider").disabled = true;
-    document.getElementById("size-slider").style.cursor = "default";
-    document.getElementById("size-slider-label").style.color = "grey";
-    document.getElementById("random-input-button").style.backgroundColor = "grey";
-    document.getElementById("random-input-button").disabled = true;
-    document.getElementById("random-input-button").style.cursor = "default";
-    document.getElementById("play-button").style.backgroundColor = "grey";
-    document.getElementById("play-button").disabled = true;
-    document.getElementById("play-button").style.cursor = "default";
-    if (selectedGraphAlgo()) document.getElementById("reset-button").removeEventListener("click", paintFreshGraph);
-    else document.getElementById("reset-button").removeEventListener("click", paintFreshArray);
-    document.getElementById("reset-button").addEventListener("click", stopRun);
+    getSizeSlider().disabled = true;
+    getSizeSlider().style.cursor = "default";
+    getSizeSliderLabel().style.color = "grey";
+    getRandomButton().style.backgroundColor = "grey";
+    getRandomButton().disabled = true;
+    getRandomButton().style.cursor = "default";
+    getPlayButton().style.backgroundColor = "grey";
+    getPlayButton().disabled = true;
+    getPlayButton().style.cursor = "default";
+    if (selected in GRAPH_ALGOS) getResetButton().removeEventListener("click", paintFreshGraph);
+    else getResetButton().removeEventListener("click", paintFreshArray);
+    getResetButton().addEventListener("click", stopRun);
     unbindSubmenuButtons();
 }
 
-const resetControls = function() {
-    document.getElementById("size-slider").disabled = false;
-    document.getElementById("size-slider").style.cursor = "pointer";
-    document.getElementById("size-slider-label").style.color = "#f6f7f8";
-    document.getElementById("random-input-button").style.backgroundColor = "#254441";
-    document.getElementById("random-input-button").removeAttribute("style");
-    document.getElementById("random-input-button").disabled = false;
-    if (selectedGraphAlgo()) document.getElementById("random-input-button").style.display = "none";
-    document.getElementById("play-button").style = "";
-    document.getElementById("play-button").disabled = false;
-    document.getElementById("reset-button").removeEventListener("click", stopRun);
-    if (selectedGraphAlgo()) document.getElementById("reset-button").addEventListener("click", paintFreshGraph);
-    else document.getElementById("reset-button").addEventListener("click", paintFreshArray);
+const resetControlsPostRun = function() {
+    getSizeSlider().disabled = false;
+    getSizeSlider().style.cursor = "pointer";
+    getSizeSliderLabel().style.color = "#f6f7f8";
+    getRandomButton().style.backgroundColor = "#254441";
+    getRandomButton().removeAttribute("style");
+    getRandomButton().disabled = false;
+    getPlayButton().style = "";
+    getPlayButton().disabled = false;
+    getResetButton().removeEventListener("click", stopRun);
+    if (selected in GRAPH_ALGOS) getResetButton().addEventListener("click", paintFreshGraph);
+    else getResetButton().addEventListener("click", paintFreshArray);
     bindSubmenuButtons();
 }
 
 const unbindSubmenuButtons = function() {
-    let sortingSubmenu = document.getElementById("sorting-submenu");
+    let sortingSubmenu = getSubmenu("sort");
     let anchor;
     for (let i = 0; i < sortingSubmenu.children.length; i++) {
         anchor = sortingSubmenu.children[i].firstElementChild;
-        anchor.removeEventListener("click", updateSelectedAlgo);
+        anchor.removeEventListener("click", updateSelectedAdjustDisplay);
     }
-    let searchingSubmenu = document.getElementById("searching-submenu")
+    let searchingSubmenu = getSubmenu("search");
     for (let i = 0; i < searchingSubmenu.children.length; i++) {
         anchor = searchingSubmenu.children[i].firstElementChild;
-        anchor.removeEventListener("click", updateSelectedAlgo);
+        anchor.removeEventListener("click", updateSelectedAdjustDisplay);
     }
-    let graphSubmenu = document.getElementById("graphing-submenu");
+    let graphSubmenu = getSubmenu("graph");
     for (let i = 0; i < graphSubmenu.children.length; i++) {
         anchor = graphSubmenu.children[i].firstElementChild;
-        anchor.removeEventListener("click", updateSelectedAlgo);
+        anchor.removeEventListener("click", updateSelectedAdjustDisplay);
     }
 }
 
 const bindSubmenuButtons = function() {
-    let sortingSubmenu = document.getElementById("sorting-submenu");
+    let sortingSubmenu = getSubmenu("sort");
     let anchor;
     for (let i = 0; i < sortingSubmenu.children.length; i++) {
         anchor = sortingSubmenu.children[i].firstElementChild;
-        anchor.addEventListener("click", updateSelectedAlgo);    
+        anchor.addEventListener("click", updateSelectedAdjustDisplay);    
     }
-    let searchingSubmenu = document.getElementById("searching-submenu")
+    let searchingSubmenu = getSubmenu("search");
     for (let i = 0; i < searchingSubmenu.children.length; i++) {
         anchor = searchingSubmenu.children[i].firstElementChild;
-        anchor.addEventListener("click", updateSelectedAlgo);     
+        anchor.addEventListener("click", updateSelectedAdjustDisplay);     
     }
-    let graphSubmenu = document.getElementById("graphing-submenu");
+    let graphSubmenu = getSubmenu("graph");
     for (let i = 0; i < graphSubmenu.children.length; i++) {
         anchor = graphSubmenu.children[i].firstElementChild;
-        anchor.addEventListener("click", updateSelectedAlgo);
+        anchor.addEventListener("click", updateSelectedAdjustDisplay);
     }
 }
 
-const updateSelectedAlgo = function(e) {
-    selected = e.target.innerHTML;
-    let resetButton = document.getElementById("reset-button");
-    if (selectedGraphAlgo() && !(prevAlgoWasGraph())) {
-        displayGraph();
-        resetButton.removeEventListener("click", paintFreshArray);
-        resetButton.addEventListener("click", paintFreshGraph);
+const updateSelectedAdjustDisplay = function(e) {
+    let prevSelected = selected;
+    selected = e.target.innerText;
+    if (selected === prevSelected) return;
+    
+    toggleSearchTargetCard(true);
+    toggleSearchTargetLabel(true);
+    toggleRandomInput(false);
+    toggleRandomInputLabel(true);
+    if (selected in GRAPH_ALGOS && !(prevAlgoWasGraph())) {
+        toggleVisualizer();
+        getResetButton().removeEventListener("click", paintFreshArray);
+        getResetButton().addEventListener("click", paintFreshGraph);
     }
-    else if (!(selectedGraphAlgo()) && prevAlgoWasGraph()) {
-        displayArray();
-        resetButton.removeEventListener("click", paintFreshGraph);
-        resetButton.addEventListener("click", paintFreshArray);
+    else if (!(selected in GRAPH_ALGOS) && prevAlgoWasGraph()) {
+        toggleVisualizer();
+        getResetButton().removeEventListener("click", paintFreshGraph);
+        getResetButton().addEventListener("click", paintFreshArray);
     }
-
-    let searchTargetCard = document.getElementById("search-target-card");
-    if (selectedGraphAlgo()) {
+    if (selected in SORT_ALGOS && !(prevSelected in SORT_ALGOS)) paintFreshArray();
+    if (selected in SEARCH_ALGOS) {
+        toggleSearchTargetCard(false);
+        if (!(prevSelected in SEARCH_ALGOS)) paintFreshArray();
+    }
+    if (selected in GRAPH_ALGOS) {
+        paintFreshGraph();
         if (selected === "Dijsktra") {
-            // draw edge weights
             drawEdgeWeights();
-            // draw min distances table
             drawMinDistancesTable();
-            // insert random weights button
-            // insert start node input
-            dijsktraRandomButton();
+            toggleRandomInputLabel(false);
+            toggleSearchTargetCard(false);
+            toggleSearchTargetLabel(false);
         }
         else {
-            // remove edge weights
-            paintFreshGraph();
-            // remove min distances table
-            let table = document.getElementById("min-distances-table");
-            if (table !== null) {
-                table.remove();
-                document.getElementsByTagName("caption")[0].remove();
-            }
-            // remove random weights button
-            dijsktraRandomButton(true);
-            // remove start node inputs
-            searchTargetCard.style.display = "none";
+            removeMinDistancesTable();
+            toggleRandomInput(true);
         }
     }
-    
-
-    if (selected === "Dijsktra") searchTargetCard.firstElementChild.innerText = "Start Node:";
-    if (selected.search("Search") > -1 || selected === "Dijsktra") searchTargetCard.style.display = "inline-block";
-    else searchTargetCard.style.display = "none";
-
-    document.getElementById("selected-algo").innerHTML = "Algorithm: " + selected;
-    selectedType = "Graph";
-    if (selected in {"Bubble Sort":true, "Insertion Sort":true, "Selection Sort":true, "Quick Sort":true, "Heap Sort":true, "Merge Sort":true}) selectedType = "Sort";
-    else if (selected in {"Binary Search":true, "Ternary Search":true}) selectedType = "Search";
-    document.getElementById("play-button").value = selectedType === "Graph" ? "Run" : selectedType;
+    getSelectedAlgoHeader().innerText = "Algorithm: " + selected;
+    getPlayButton().value = selected in GRAPH_ALGOS ? "Run" : getSelectedType();
 }
 
-const dijsktraRandomButton = function(remove=false) {
-    let randomButton = document.getElementById("random-input-button");
-    randomButton.style.display = remove ? "none" : "inline-block";
-    randomButton.value = remove ? "Random Input" : "Random Edges";
+const toggleSearchTargetLabel = (target) => getSearchTargetLabel().innerText = target ? "Search Target:" : "Start Node:";
+
+const toggleRandomInputLabel = (input) => getRandomButton().value = input ? "Random Input" : "Random Weight";
+
+const toggleRandomInput = (erase) => getRandomButton().style.display = erase ? "none" : "inline-block";
+
+const toggleVisualizer = function() {
+    let showGraph = selected in GRAPH_ALGOS;
+    getArrayViz().style.display = showGraph ? "none" : "block";
+    getGraphViz().style.display = showGraph ? "flex" : "none";
 }
 
-// checks if algorithm is currently running
-const algoRunning = () => document.getElementById("running").innerHTML === "yes";
-
-// stop a a currently running algorithm
-const stopRun = () => document.getElementById("running").innerHTML = "no";
-
-const selectedGraphAlgo = () => {
-    let graphAlgos = ["DFS", "BFS", "Dijsktra", "Top Sort"];
-    for (let i = 0; i < graphAlgos.length; i++) {
-        if (selected === graphAlgos[i]) return true;
-    }
-    return false;
+export const getSelectedType = () => {
+    if (selected in SORT_ALGOS) return "Sort";
+    return selected in SEARCH_ALGOS ? "Search" : "Graph";
 }
-
-export const reset = () => document.getElementById("running").innerHTML === "no";
+export const reset = () => getRunningStatus() === "no";
 export const getCurrentSpeed = () => (MIN_ANIM_SPEED / getSpeedSliderValue()) * 1000;
-export const getSizeSliderValue = () => Number(document.getElementById("size-slider").value);
+export const getSizeSliderValue = () => Number(getSizeSlider().value);
 export const getSpeedSliderValue = () => Number(document.getElementById("speed-slider").value);
-
-const displayArray = () => {
-    document.getElementById("graph-visualizer").style.display = "none";
-    document.getElementById("array-visualizer").style.display = "block";
-    document.getElementById("random-input-button").style.display = "inline-block";
-    document.getElementById("size-slider").addEventListener("mouseup", paintFreshArray);
-    document.getElementById("size-slider").removeEventListener("mouseup", paintFreshGraph);
-    paintFreshArray();
-}
-
-const displayGraph = () => {
-    document.getElementById("graph-visualizer").style.display = "flex";
-    document.getElementById("array-visualizer").style.display = "none";
-    document.getElementById("random-input-button").style.display = "none";
-    document.getElementById("size-slider").addEventListener("mouseup", paintFreshGraph);
-    document.getElementById("size-slider").removeEventListener("mouseup", paintFreshArray);
-    paintFreshGraph();
-}
-
+const toggleSearchTargetCard = (erase) => erase ? getSearchTargetCard().style.display = "none" : getSearchTargetCard().style.display = "block";
+const algoRunning = () => getRunningStatus() === "yes";
+const stopRun = () => setRunningStatus("no");
 const prevAlgoWasGraph = () => document.getElementById("array-visualizer").style.display === "none";
+const getSizeSlider = () => document.getElementById("size-slider");
+const getRandomButton = () => document.getElementById("random-input-button");
+const getPlayButton = () => document.getElementById("play-button");
+const getResetButton = () => document.getElementById("reset-button");
+const getRunningStatus = () =>  document.getElementById("running").innerText;
+const setRunningStatus = (status) => document.getElementById("running").innerText = status;
+const getSearchTargetLabel = () => document.getElementById("search-target-label");
+const getSearchTargetInput = () => document.getElementById("search-target");
+const getSearchTargetCard = () => document.getElementById("search-target-card");
+const getSizeSliderLabel = () => document.getElementById("size-slider-label"); 
+const getSubmenu = (type) => document.getElementById(`${type}ing-submenu`);
+const getSelectedAlgoHeader = () => document.getElementById("selected-algo");
+const validSearchTarget = (target) => target.match(/^\d+$/) !== null;
+const getArrayViz = () => document.getElementById("array-visualizer");
+const getGraphViz = () => document.getElementById("graph-visualizer");

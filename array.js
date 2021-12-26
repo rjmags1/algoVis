@@ -1,4 +1,4 @@
-import { getCurrentSpeed, getSizeSliderValue } from "./index.js";
+import { getCurrentSpeed, getSizeSliderValue, getSelectedType } from "./index.js";
 
 const MAX_ELEMENT = 99;
 const MIN_ELEMENT = 1;
@@ -41,16 +41,13 @@ export const randomArray = function() {
     paintFreshArray();
 }
 
-export const sortForSearch = async function() {
+export const sortForSearch = function() {
     let sorted = array.slice().sort((a, b) => a - b);
     for (let i = 0; i < sorted.length; i++) {
         replaceBar(i, sorted[i], true);
         array[i] = sorted[i];
         instantPaintSortedBar(i);
     }
-    return new Promise(resolve => {
-        setTimeout(() => { resolve(); }, getCurrentSpeed());
-    })
 }
 
 // gets rid of array on screen if any prior to call, fills internal array and paints it
@@ -61,6 +58,7 @@ export const paintFreshArray = function() {
         array[i] = resetArray[i];
         appendCard(createNewBarCard(resetArray[i]));
     }
+    if (getSelectedType() === "Search") sortForSearch();
 }
 
 // paint bar a particular color in one animation
