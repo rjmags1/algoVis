@@ -1,4 +1,4 @@
-import { getCurrentSpeed, getSizeSliderValue, getSelectedType } from "./index.js";
+import { getCurrentSpeed, getSizeSliderValue, getSelectedType, reset } from "./index.js";
 
 const MAX_ELEMENT = 99;
 const MIN_ELEMENT = 1;
@@ -33,6 +33,7 @@ export const resizeArray = function() {
             currentLength--;
         }
     }
+    if (getSelectedType() === "Search") sortForSearch();
 }
 
 // reinitializes internal array and paints it to screen
@@ -46,6 +47,7 @@ export const sortForSearch = function() {
     for (let i = 0; i < sorted.length; i++) {
         replaceBar(i, sorted[i], true);
         array[i] = sorted[i];
+        resetArray[i] = sorted[i];
         instantPaintSortedBar(i);
     }
 }
@@ -122,7 +124,7 @@ export const foundTargetAnimation = async function(mid) {
     }
 }
 
-// replaces a bar with another with newHeight height
+// replaces a bar with another of newHeight height
 export const replaceBar = async function(i, newHeight, instant=false) {
     let bar = getBar(i);
     if (instant) {
@@ -147,9 +149,6 @@ export const unpaintBar = (i) => getBar(i).style.backgroundColor = DEFAULT_COLOR
 export const instantPaintSortedBar = (i) => getBar(i).style.backgroundColor = SORTED_COLOR;
 
 export const instantPaintBar = (i, color=null) => color === null ? getBar(i).style.backgroundColor = SELECT_COLOR : getBar(i).style.backgroundColor = color;
-
-
-// PRIVATE METHODS -----------------------------------------------------
 
 // param size is an integer in [1, 99]
 const createNewBarCard = function(size) {

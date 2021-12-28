@@ -17,9 +17,7 @@ const GRAPH_ALGOS = {"DFS": true,
                      "Dijsktra":true,
                      "Top Sort":true};
 
-var selected = "Bubble Sort";
-
-
+export var selected = "Bubble Sort";
 
 // load actions
 document.addEventListener("DOMContentLoaded", () => {
@@ -27,6 +25,19 @@ document.addEventListener("DOMContentLoaded", () => {
     bindControlPanelInputs();
     bindSubmenuButtons();
 });
+
+export const getSelectedType = () => {
+    if (selected in SORT_ALGOS) return "Sort";
+    return selected in SEARCH_ALGOS ? "Search" : "Graph";
+}
+
+export const reset = () => getRunningStatus() === "no";
+export const getCurrentSpeed = () => (MIN_ANIM_SPEED / getSpeedSliderValue()) * 1000;
+export const getSizeSliderValue = () => Number(getSizeSlider().value);
+export const getSpeedSliderValue = () => Number(document.getElementById("speed-slider").value);
+export const getArrayViz = () => document.getElementById("array-visualizer");
+export const getGraphViz = () => document.getElementById("graph-visualizer");
+export const getStartNode = () => getSearchTargetInput().value;
 
 const bindControlPanelInputs = function() {
     getSizeSlider().addEventListener("mouseup", resizeArray);
@@ -69,12 +80,10 @@ const doSearch = async function() {
     target = Number(target);
     setRunningStatus("yes");
     alterControlsForRun();
-    disableSearchInput()
     if (selected === "Binary Search") reset = await search.doBinarySearch(target);
     if (selected === "Ternary Search") reset = await search.doTernarySearch(target);
     if (reset) paintFreshArray();
     resetControlsPostRun();
-    enableSearchInput()
     setRunningStatus("no");
 }
 
@@ -82,10 +91,11 @@ const doGraph = async function() {
     let reset;
     setRunningStatus("yes");
     alterControlsForRun();
-    paintFreshGraph();
     if (selected === "DFS") reset = await graphAlgos.doDFS();
     if (selected === "BFS") reset = await graphAlgos.doBFS();
-    if (selected === "Dijsktra") reset = await graphAlgos.doDijsktra();
+    if (selected === "Dijsktra") {
+        reset = await graphAlgos.doDijsktra();
+    }
     if (reset) paintFreshGraph();
     resetControlsPostRun();
     setRunningStatus("no");
@@ -113,9 +123,8 @@ const alterControlsForRun = function() {
     getPlayButton().style.backgroundColor = "grey";
     getPlayButton().disabled = true;
     getPlayButton().style.cursor = "default";
-    if (selected in GRAPH_ALGOS) getResetButton().removeEventListener("click", paintFreshGraph);
-    else getResetButton().removeEventListener("click", paintFreshArray);
-    getResetButton().addEventListener("click", stopRun);
+    updateResetEventListenerForRun(true);
+    if (selected in SEARCH_ALGOS || selected === "Dijsktra") disableSearchInput(); 
     unbindSubmenuButtons();
 }
 
@@ -128,9 +137,8 @@ const resetControlsPostRun = function() {
     getRandomButton().disabled = false;
     getPlayButton().style = "";
     getPlayButton().disabled = false;
-    getResetButton().removeEventListener("click", stopRun);
-    if (selected in GRAPH_ALGOS) getResetButton().addEventListener("click", paintFreshGraph);
-    else getResetButton().addEventListener("click", paintFreshArray);
+    updateResetEventListenerForRun(false);
+    if (selected in SEARCH_ALGOS || selected === "Dijsktra") enableSearchInput(); 
     bindSubmenuButtons();
 }
 
@@ -172,53 +180,103 @@ const bindSubmenuButtons = function() {
     }
 }
 
+const updateResetEventListenerForRun = function(preRun) {
+    let oldHandler, newHandler;
+    if (selected in GRAPH_ALGOS) {
+        oldHandler = preRun ? paintFreshGraph : stopRun;
+        newHandler = preRun ? stopRun : paintFreshGraph;
+    }
+    else {
+        oldHandler = preRun ? paintFreshArray : stopRun;
+        newHandler = preRun ? stopRun : paintFreshArray;
+    }
+    getResetButton().removeEventListener("click", oldHandler);
+    getResetButton().addEventListener("click", newHandler);
+}
+
+const updateResetEventListenerNewDisplay = function() {
+    let oldHandler, newHandler;
+    oldHandler = selected in GRAPH_ALGOS ? paintFreshArray : paintFreshGraph;
+    newHandler = selected in GRAPH_ALGOS ? paintFreshGraph : paintFreshArray;
+    getResetButton().removeEventListener("click", oldHandler);
+    getResetButton().addEventListener("click", newHandler);
+}
+
+const updateRandomEventListener = function() {
+    let oldHandler, newHandler;
+    oldHandler = selected in GRAPH_ALGOS ? randomArray : paintFreshGraph;
+    newHandler = selected in GRAPH_ALGOS ? paintFreshGraph : randomArray;
+    getRandomButton().removeEventListener("click", oldHandler);
+    getRandomButton().addEventListener("click", newHandler);
+}
+
+const updateSizeEventListener = function() {
+    let oldHandler, newHandler;
+    oldHandler = selected in GRAPH_ALGOS ? resizeArray : paintFreshGraph;
+    newHandler = selected in GRAPH_ALGOS ? paintFreshGraph : resizeArray;
+    getSizeSlider().removeEventListener("click", oldHandler);
+    getSizeSlider().addEventListener("click", newHandler);
+}
+
 const updateSelectedAdjustDisplay = function(e) {
+    // calibrates event listeners and visibility of display inputs 
     let prevSelected = selected;
     selected = e.target.innerText;
     if (selected === prevSelected) return;
     
-    toggleSearchTargetCard(true);
-    toggleSearchTargetLabel(true);
-    toggleRandomInput(false);
-    toggleRandomInputLabel(true);
-    if (selected in GRAPH_ALGOS && !(prevAlgoWasGraph())) {
-        toggleVisualizer();
-        getResetButton().removeEventListener("click", paintFreshArray);
-        getResetButton().addEventListener("click", paintFreshGraph);
-    }
-    else if (!(selected in GRAPH_ALGOS) && prevAlgoWasGraph()) {
-        toggleVisualizer();
-        getResetButton().removeEventListener("click", paintFreshGraph);
-        getResetButton().addEventListener("click", paintFreshArray);
-    }
-    if (selected in SORT_ALGOS && !(prevSelected in SORT_ALGOS)) paintFreshArray();
-    if (selected in SEARCH_ALGOS) {
-        toggleSearchTargetCard(false);
-        if (!(prevSelected in SEARCH_ALGOS)) paintFreshArray();
-    }
-    if (selected in GRAPH_ALGOS) {
-        paintFreshGraph();
-        if (selected === "Dijsktra") {
-            drawEdgeWeights();
-            drawMinDistancesTable();
-            toggleRandomInputLabel(false);
-            toggleSearchTargetCard(false);
-            toggleSearchTargetLabel(false);
-        }
-        else {
-            removeMinDistancesTable();
-            toggleRandomInput(true);
-        }
-    }
-    getSelectedAlgoHeader().innerText = "Algorithm: " + selected;
-    getPlayButton().value = selected in GRAPH_ALGOS ? "Run" : getSelectedType();
+    // set display to default
+    toggleSearchTargetCard(true); // default no target input
+    toggleSearchTargetLabel(true); // default label for target is "search target: "
+    toggleRandomInput(true); // default dont show random input
+    toggleRandomInputLabel(true); // default label for random input is "random input"
+    getSelectedAlgoHeader().innerText = "Algorithm: " + selected; // always update sel header
+    getPlayButton().value = selected in GRAPH_ALGOS ? "Run" : getSelectedType(); // always update run button 
+
+    if (selected in SORT_ALGOS) adjustDisplayForSort(prevSelected in SEARCH_ALGOS);
+    if (selected in SEARCH_ALGOS) adjustDisplayForSearch();
+    if (selected in GRAPH_ALGOS) adjustDisplayForGraph();
 }
 
-const toggleSearchTargetLabel = (target) => getSearchTargetLabel().innerText = target ? "Search Target:" : "Start Node:";
+const adjustDisplayForGraph = function() {
+    if ((!prevAlgoWasGraph())) {
+        toggleVisualizer();
+        updateSizeEventListener();
+        updateResetEventListenerNewDisplay();
+        updateRandomEventListener();
+    }
+    if (selected === "Dijsktra") {
+        toggleSearchTargetCard(false);
+        toggleSearchTargetLabel(false);
+        toggleRandomInput(false);
+        toggleRandomInputLabel(false);
 
-const toggleRandomInputLabel = (input) => getRandomButton().value = input ? "Random Input" : "Random Weight";
+    }
+    paintFreshGraph();
+}
 
-const toggleRandomInput = (erase) => getRandomButton().style.display = erase ? "none" : "inline-block";
+const adjustDisplayForSort = function(needRandom) {
+    if (prevAlgoWasGraph()) {
+        toggleVisualizer();
+        updateSizeEventListener()
+        updateResetEventListenerNewDisplay();
+        updateRandomEventListener();
+    }
+    if (needRandom) randomArray();
+    else paintFreshArray();
+    toggleRandomInput(false);
+}
+
+const adjustDisplayForSearch = function() {
+    if (prevAlgoWasGraph()) {
+        toggleVisualizer();
+        updateSizeEventListener();
+        updateResetEventListenerNewDisplay();
+        updateRandomEventListener();
+    }
+    paintFreshArray();
+    toggleRandomInput(false);
+    toggleSearchTargetCard(false);
+}
 
 const toggleVisualizer = function() {
     let showGraph = selected in GRAPH_ALGOS;
@@ -226,14 +284,6 @@ const toggleVisualizer = function() {
     getGraphViz().style.display = showGraph ? "flex" : "none";
 }
 
-export const getSelectedType = () => {
-    if (selected in SORT_ALGOS) return "Sort";
-    return selected in SEARCH_ALGOS ? "Search" : "Graph";
-}
-export const reset = () => getRunningStatus() === "no";
-export const getCurrentSpeed = () => (MIN_ANIM_SPEED / getSpeedSliderValue()) * 1000;
-export const getSizeSliderValue = () => Number(getSizeSlider().value);
-export const getSpeedSliderValue = () => Number(document.getElementById("speed-slider").value);
 const toggleSearchTargetCard = (erase) => erase ? getSearchTargetCard().style.display = "none" : getSearchTargetCard().style.display = "block";
 const algoRunning = () => getRunningStatus() === "yes";
 const stopRun = () => setRunningStatus("no");
@@ -251,5 +301,6 @@ const getSizeSliderLabel = () => document.getElementById("size-slider-label");
 const getSubmenu = (type) => document.getElementById(`${type}ing-submenu`);
 const getSelectedAlgoHeader = () => document.getElementById("selected-algo");
 const validSearchTarget = (target) => target.match(/^\d+$/) !== null;
-const getArrayViz = () => document.getElementById("array-visualizer");
-const getGraphViz = () => document.getElementById("graph-visualizer");
+const toggleSearchTargetLabel = (target) => getSearchTargetLabel().innerText = target ? "Search Target:" : "Start Node:";
+const toggleRandomInputLabel = (input) => getRandomButton().value = input ? "Random Input" : "Random Weight";
+const toggleRandomInput = (erase) => getRandomButton().style.display = erase ? "none" : "inline-block";

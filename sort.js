@@ -2,7 +2,6 @@ import { SORTED_COLOR, SELECT_COLOR, replaceBar, array, paintBar, instantPaintBa
 import { reset } from "./index.js";
 
 
-// EXPORTS ---------------------------------------------------------
 export const doBubbleSort = async function() {
     let sorted;
     for (let i = array.length - 1; i > 0; i--) {
@@ -108,7 +107,6 @@ export const doMergeSort = async function() {
 }
 
 
-// PRIVATE METHODS -----------------------------------------------
 const mergeSort = async function(start, end) {
     if (start > end) return [];
     if (start === end) {
@@ -130,10 +128,8 @@ const mergeSort = async function(start, end) {
 
 const merge = async function(leftHalf, rightHalf, start) {
     let merged = [];
-    let i = 0;
-    let j = 0;
-    let k = start;
-    let n;
+    let i, j, k, n;
+    i = 0, j = 0, k = start;
     for (n = start; n < start + leftHalf.length + rightHalf.length - 1; n++) { instantPaintBar(n, "blue") }
     await paintBar(n, "blue");
     if (reset()) return null;

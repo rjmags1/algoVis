@@ -1,9 +1,9 @@
-import { array, paintBar, instantPaintBar, instantPaintSortedBar, foundTargetAnimation, SORTED_COLOR } from "./array.js";
+import { array, paintBar, instantPaintBar, instantPaintSortedBar, foundTargetAnimation } from "./array.js";
 import { reset } from "./index.js";
 
 export const doBinarySearch = async function(target) {
     if (reset()) return true;
-    for (let i = 0; i < array.length - 1; i++)  instantPaintBar(i, "blue");
+    for (let i = 0; i < array.length - 1; i++) instantPaintBar(i, "blue");
     await paintBar(array.length - 1, "blue");
     if (reset()) return true;
 
