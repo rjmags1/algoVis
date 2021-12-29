@@ -1,5 +1,5 @@
 import { reset, getStartNode } from "./index.js";
-import { paintEdge, paintNode, instantPaintNode, displayedNodeData, edgesToWeights, getTableDistCell, instantPaintEdge, paintMinDistCol, instantPaintMinDistCol } from "./graph.js";
+import { paintEdge, paintNode, instantPaintNode, displayedNodeData, edgesToWeights, getTableDistCell, instantPaintEdge, paintMinDistCol, instantPaintMinDistCol, updateTableContents } from "./graph.js";
 
 export const doDFS = async function() {
     let r = await dfs("0", displayedNodeData);
@@ -19,55 +19,55 @@ export const doDijsktra = async function() {
         alert("please specify valid start node!")
         return true;
     }
+    start = Number(start);
     let pathInfo = {};
-    let labels = Object.keys(displayedNodeData);
+    let labels = Object.keys(displayedNodeData).map(label => Number(label));
     for (const label of labels) {
         pathInfo[label] = label === start ? {distance: 0, prev: null} :
                                             {distance: Infinity, prev: null};
     }
+    updateTableContents(start, 0);
     
-    let current, currentDistance, oldColor;
-    while (labels.length > 0) {
-        current = nextClosest(labels, pathInfo); // get next closest
-        await paintNode(displayedNodeData[current].canvasData, "red", current);
+    let queue = labels;
+    let current, currentData;
+    while (queue.length > 0) {
+        current = nextClosest(queue, pathInfo);
+        currentData = displayedNodeData[current];
+        queue = queue.filter(label => label !== current);
+        instantPaintMinDistCol(current, "red", "white");
+        if (pathInfo[current].prev !== null) {
+            instantPaintEdge(displayedNodeData[pathInfo[current].prev].canvasData, currentData.canvasData, "green");
+        }
+        await paintNode(currentData.canvasData, "red", current);
         if (reset()) return true;
-        labels = labels.filter(label => label !== current); // remove current from labels queue
-        
+
+        let d, prevDist;
         for (const dest of displayedNodeData[current].edges) {
-            currentDistance = edgesToWeights[edgeKey(current, dest)] + getMinDistanceSoFar(current);
-            oldColor = getColor(current);
-            instantPaintEdge(displayedNodeData[current].canvasData, displayedNodeData[dest].canvasData, "blue");
-            await paintNode(displayedNodeData[dest].canvasData, "blue", dest);
+            let destCanvasData = displayedNodeData[dest].canvasData;
+            instantPaintNode(destCanvasData, "blue", dest)
+            await paintEdge(currentData.canvasData, destCanvasData, "blue");
             if (reset()) return true;
 
-            if (currentDistance < pathInfo[dest].distance) {
-                await setMinDistanceSoFar(dest, currentDistance);
-                if (reset()) return true;
+            prevDist = pathInfo[dest].distance;
+            d = prevDist === Infinity ? pathInfo[current].distance : prevDist;
+            d += edgesToWeights[`${current}-${dest}`];
+            if (d < prevDist) {
+                pathInfo[dest].distance = d;
                 pathInfo[dest].prev = current;
-                instantPaintMinDistCol(dest, "white");
+                updateTableContents(dest, d);
+                await paintMinDistCol(dest, "blue", "white");
+                if (reset()) return true;
+                instantPaintMinDistCol(dest, "white", "black");
             }
 
-            instantPaintNode(displayedNodeData[dest].canvasData, oldColor, dest);
-            instantPaintEdge(displayedNodeData[current].canvasData, displayedNodeData[dest].canvasData, "blue");
+            instantPaintNode(destCanvasData, "grey", dest)
+            await paintEdge(currentData.canvasData, destCanvasData, "grey");
         }
-        instantPaintNode(displayedNodeData[current].canvasData, "green", current);
-        displayedNodeData[current].visited = true;
+        instantPaintMinDistCol(current, "green", "white");
+        await paintNode(currentData.canvasData, "green", current);
     }
+
 }
-
-const getColor = (label) => displayedNodeData[label].visited ? "green" : "grey";
-
-const setMinDistanceSoFar = async function(label, distance) {
-    getTableDistCell(label).innerText = String(distance);
-    await paintMinDistCol(label, "yellow");
-}
-
-const getMinDistanceSoFar = function(label) {
-    let cellContents = getTableDistCell(label).innerText;
-    return cellContents === "INF" ? Infinity : Number(cellContents);
-}
-
-const edgeKey = (start, dest) => `${start}-${dest}`;
 
 const nextClosest = function(labels, pathInfo) {
     let result = labels[0];

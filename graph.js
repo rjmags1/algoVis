@@ -156,18 +156,24 @@ export const removeMinDistancesTable = function() {
 
 export const getTableDistCell = (label) => getTable().children[1].children[label];
 
-export const paintMinDistCol = async function(label, color) {
-    instantPaintMinDistCol(label, color);
+export const paintMinDistCol = async function(label, color, textColor) {
+    instantPaintMinDistCol(label, color, textColor);
     return new Promise(resolve => {
         setTimeout(() => { resolve(); }, getCurrentSpeed());
     });
 }
 
-export const instantPaintMinDistCol = function(label, color) {
+export const instantPaintMinDistCol = function(label, color, textColor) {
     let labelCell, distCell;
     [labelCell, distCell] = getTableDistCol(label);
     labelCell.style.backgroundColor = color;
+    labelCell.style.color = textColor;
     distCell.style.backgroundColor = color;
+    distCell.style.color = textColor;
+}
+
+export const updateTableContents = function(label, dist) {
+    getTableDistCell(label).innerText = String(dist);
 }
 
 const resizeEdgesToWeights = function() {
@@ -187,7 +193,7 @@ const resizeEdgesToWeights = function() {
     }
 }
 
-const getTableDistCol = (label) => [getTable().children[0].children[label], getTable().children[0].children[label]];
+const getTableDistCol = (label) => [getTable().children[0].children[label], getTable().children[1].children[label]];
 
 const getFreshMinDistancesTable = function() {
     let table = document.createElement("table");

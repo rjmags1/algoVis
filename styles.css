@@ -139,6 +139,7 @@ caption.min-distances {
 .min-distances-td {
     padding: 5px;
     text-align: center;
+    width: 2rem;
 }
 
 /* CONTROL PANEL ---------------------------------------------- */
