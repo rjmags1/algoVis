@@ -1,5 +1,7 @@
 import { reset, getStartNode } from "./index.js";
-import { paintEdge, paintNode, instantPaintNode, displayedNodeData, edgesToWeights, getTableDistCell, instantPaintEdge, paintMinDistCol, instantPaintMinDistCol, updateTableContents } from "./graph.js";
+import { paintEdge, paintNode, instantPaintNode, displayedNodeData, edgesToWeights,
+         instantPaintEdge, paintMinDistCol, instantPaintMinDistCol, updateTableContents,
+         topSortOrderAppend } from "./graph.js";
 
 export const doDFS = async function() {
     let r = await dfs("0", displayedNodeData);
@@ -14,12 +16,7 @@ export const doBFS = async function() {
 }
 
 export const doDijsktra = async function() {
-    let start = getStartNode();
-    if (!validStart(start)) {
-        alert("please specify valid start node!")
-        return true;
-    }
-    start = Number(start);
+    let start = 0;
     let pathInfo = {};
     let labels = Object.keys(displayedNodeData).map(label => Number(label));
     for (const label of labels) {
@@ -33,6 +30,7 @@ export const doDijsktra = async function() {
     while (queue.length > 0) {
         current = nextClosest(queue, pathInfo);
         currentData = displayedNodeData[current];
+        currentData.visited = true;
         queue = queue.filter(label => label !== current);
         instantPaintMinDistCol(current, "red", "white");
         if (pathInfo[current].prev !== null) {
@@ -41,9 +39,10 @@ export const doDijsktra = async function() {
         await paintNode(currentData.canvasData, "red", current);
         if (reset()) return true;
 
-        let d, prevDist;
+        let d, prevDist, destCanvasData, oldColor;
         for (const dest of displayedNodeData[current].edges) {
-            let destCanvasData = displayedNodeData[dest].canvasData;
+            destCanvasData = displayedNodeData[dest].canvasData;
+            oldColor = displayedNodeData[dest].visited ? "green" : "grey";
             instantPaintNode(destCanvasData, "blue", dest)
             await paintEdge(currentData.canvasData, destCanvasData, "blue");
             if (reset()) return true;
@@ -60,14 +59,83 @@ export const doDijsktra = async function() {
                 instantPaintMinDistCol(dest, "white", "black");
             }
 
-            instantPaintNode(destCanvasData, "grey", dest)
+            instantPaintNode(destCanvasData, oldColor, dest)
             await paintEdge(currentData.canvasData, destCanvasData, "grey");
+            if (reset()) return true;
         }
         instantPaintMinDistCol(current, "green", "white");
         await paintNode(currentData.canvasData, "green", current);
+        if (reset()) return true;
+    }
+    resetVisited(displayedNodeData);
+    return false;
+}
+
+export const doTopSort = async function() {
+    let labels = Object.keys(displayedNodeData).map(label => Number(label));
+    let scores = getTopSortScores();
+    let cd;
+    for (const n of labels) {
+        cd = displayedNodeData[n].canvasData;
+        instantPaintMinDistCol(n, "blue", "white");
+        updateTableContents(n, scores[n]);
+        await paintNode(cd, "blue", n);
+        if (reset()) return true;
+        instantPaintMinDistCol(n, "white", "black");
+        instantPaintNode(cd, "grey", n);
     }
 
+    let sorted = 0;
+    let zeroScores, ecd;
+    while (sorted < labels.length) {
+        zeroScores = getZeroScores(scores);
+        for (const n of zeroScores) {
+            cd = displayedNodeData[n].canvasData;
+            instantPaintMinDistCol(n, "red", "white");
+            await paintNode(cd, "red", n);
+            if (reset()) return true;
+
+            for (const d of displayedNodeData[n].edges) {
+                scores[d]--;
+                ecd = displayedNodeData[d].canvasData;
+                instantPaintNode(ecd, "blue", d);
+                instantPaintMinDistCol(d, "blue", "white");
+                updateTableContents(d, scores[d]);
+                await paintEdge(cd, ecd, "blue");
+                if (reset()) return true;
+
+                instantPaintNode(ecd, "grey", d);
+                instantPaintMinDistCol(d, "white", "black");
+                instantPaintEdge(cd, ecd, "green");
+            }
+
+            scores[n]--;
+            sorted++;
+            instantPaintMinDistCol(n, "green", "white");
+            await paintNode(cd, "green", n);
+            if (reset()) return true;
+            await topSortOrderAppend(n);
+            if (reset()) return true;
+        }
+    }
+
+    return false;
 }
+
+const getTopSortScores = function() {
+    let scores = {};
+    for (const n of Object.keys(displayedNodeData)) {
+        if (!(n in scores)) scores[n] = 0;
+        for (const d of displayedNodeData[n].edges) {
+            if (!(d in scores)) scores[d] = 0;
+            scores[d]++;
+        }
+    }
+
+    return scores;
+}
+
+const getZeroScores = (scores) => Object.keys(scores).filter(s => scores[s] === 0);
 
 const nextClosest = function(labels, pathInfo) {
     let result = labels[0];
@@ -78,8 +146,6 @@ const nextClosest = function(labels, pathInfo) {
 }
 
 const comp = (first, second, pathInfo) => pathInfo[first].distance < pathInfo[second].distance;
-
-const validStart = (start) => start.match(/^\d+$/) !== null && 0 <= Number(start) && Number(start) < Object.keys(displayedNodeData).length;
 
 const bfs = async function(nodes) {
     let label, current, destLabel, dest, edgeLabel;

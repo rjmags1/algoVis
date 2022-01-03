@@ -2,7 +2,7 @@ import * as sort from "./sort.js";
 import * as search from "./search.js";
 import * as graphAlgos from "./graphAlgos.js";
 import { paintFreshArray, resizeArray, randomArray, MIN_ANIM_SPEED } from "./array.js";
-import { paintFreshGraph, drawEdgeWeights, drawMinDistancesTable, removeMinDistancesTable } from "./graph.js";
+import { paintFreshGraph } from "./graph.js";
 
 const SORT_ALGOS = {"Bubble Sort":true,
                     "Insertion Sort":true,
@@ -93,9 +93,8 @@ const doGraph = async function() {
     alterControlsForRun();
     if (selected === "DFS") reset = await graphAlgos.doDFS();
     if (selected === "BFS") reset = await graphAlgos.doBFS();
-    if (selected === "Dijsktra") {
-        reset = await graphAlgos.doDijsktra();
-    }
+    if (selected === "Dijsktra") reset = await graphAlgos.doDijsktra();
+    if (selected === "Top Sort") reset = await graphAlgos.doTopSort();
     if (reset) paintFreshGraph();
     resetControlsPostRun();
     setRunningStatus("no");
@@ -245,8 +244,6 @@ const adjustDisplayForGraph = function() {
         updateRandomEventListener();
     }
     if (selected === "Dijsktra") {
-        toggleSearchTargetCard(false);
-        toggleSearchTargetLabel(false);
         toggleRandomInput(false);
         toggleRandomInputLabel(false);
 

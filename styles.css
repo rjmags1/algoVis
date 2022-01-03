@@ -124,6 +124,16 @@
     flex-direction: column;
 }
 
+#top-sort-order {
+    margin-bottom: 3px;
+}
+
+.top-sort-order {
+    margin: 0 2px;
+    font-family: monospace;
+    font-weight: bold;
+}
+
 .min-distances {
     border: 1px solid black;
     border-collapse: collapse;

@@ -1,34 +1,8 @@
 import { getSizeSliderValue, getCurrentSpeed, getGraphViz, selected } from "./index.js";
+import * as shapesMath from "./shapesMath.js";
 
-const CANVAS_WIDTH = 700;
-const CANVAS_HEIGHT = 600;
-const RC_TO_LABEL = {
-    0: 16,
-    1: 15,
-    2: 14,
-    3: 17,
-    4: 5,
-    5: 4,
-    6: 13,
-    7: 18,
-    8: 6,
-    9: 0,
-    10: 3,
-    11: 12,
-    12: 7,
-    13: 1,
-    14: 2,
-    15: 11,
-    16: 19,
-    17: 8,
-    18: 9,
-    19: 10,
-    20: 24,
-    21: 20,
-    22: 21,
-    23: 22,
-    24: 23
-}
+export const CANVAS_WIDTH = 700;
+export const CANVAS_HEIGHT = 600;
 const LABELS_TO_EDGES = [
     [1, 2], // 0
     [7, 8],
@@ -61,7 +35,31 @@ export var displayedNodeData = {};
 export var edgesToWeights = {};
 var nodeCanvasData = null;
 
+export const paintFreshGraph = function(e) {
+    if (nodeCanvasData === null) nodeCanvasData = shapesMath.generateNodeCanvasData();
+    let canvas = getCanvas();
+    canvas.remove();
+    removeTables();
+    canvas = document.createElement("canvas");
+    canvas.id = "graph-canvas";
+    canvas.width = CANVAS_WIDTH;
+    canvas.height = CANVAS_HEIGHT;
+    document.getElementById("graph-visualizer").appendChild(canvas);
 
+    const numNodes = getSizeSliderValue() / 2;
+    drawNodes(numNodes);
+    drawEdges(numNodes);
+    updateDisplayedNodeData(numNodes);
+    if (selected === "Dijsktra") {
+        let newWeights = e && e.target.id === "random-input-button";
+        drawEdgeWeights(newWeights);
+        drawMinDistancesTable();
+    }
+    if (selected === "Top Sort") {
+        drawTopSortOrder()
+        drawScoresTable();
+    }
+}
 
 export const paintEdge = async function(startCanvasData, endCanvasData, color) {
     instantPaintEdge(startCanvasData, endCanvasData, color);
@@ -101,32 +99,10 @@ export const instantPaintEdge = function(startCanvasData, endCanvasData, color) 
     let lineStart, lineEnd;
     let m = x1 === x2 ? Infinity : (y1 - y2) / (x1 - x2);
     let c = y1 - m * x1;
-    [lineStart, lineEnd] = getEdgeTips(x1, y1, x2, y2, r, m, c);
-    drawLine(lineStart, lineEnd, 2, color);
-    drawTriangle(lineStart, lineEnd, x2, y2, m, c, color);
+    [lineStart, lineEnd] = shapesMath.getEdgeTips(x1, y1, x2, y2, r, m, c);
+    shapesMath.drawLine(lineStart, lineEnd, 2, color);
+    shapesMath.drawTriangle(lineStart, lineEnd, x2, y2, m, c, color);
 };
-
-export const paintFreshGraph = function(e) {
-    if (nodeCanvasData === null) nodeCanvasData = generateNodeCanvasData();
-    let canvas = getCanvas();
-    canvas.remove();
-    removeMinDistancesTable();
-    canvas = document.createElement("canvas");
-    canvas.id = "graph-canvas";
-    canvas.width = CANVAS_WIDTH;
-    canvas.height = CANVAS_HEIGHT;
-    document.getElementById("graph-visualizer").appendChild(canvas);
-
-    const numNodes = getSizeSliderValue() / 2;
-    drawNodes(numNodes);
-    drawEdges(numNodes);
-    updateDisplayedNodeData(numNodes);
-    if (selected === "Dijsktra") {
-        let newWeights = e && e.target.id === "random-input-button";
-        drawEdgeWeights(newWeights);
-        drawMinDistancesTable();
-    }
-}
 
 export const drawEdgeWeights = function(newWeights=true) {
     if (newWeights) edgesToWeights = generateShownEdgeWeights()
@@ -147,14 +123,17 @@ export const drawMinDistancesTable = function() {
     getGraphViz().appendChild(caption);
 }
 
-export const removeMinDistancesTable = function() {
-    if (getTable() !== null) {
-        getTable().remove();
-        getCaption().remove()
+export const removeTables = function() {
+    let elem;
+    let rem = []
+    for (let i = 0; i < getGraphViz().children.length; i++) {
+        elem = getGraphViz().children[i];
+        if (elem.id !== "graph-canvas") rem.push(elem);
     }
+    while (rem.length > 0) rem.shift().remove();
 }
 
-export const getTableDistCell = (label) => getTable().children[1].children[label];
+export const getMinDistanceTableDistCell = (label) => getMinDistanceTable().children[1].children[label];
 
 export const paintMinDistCol = async function(label, color, textColor) {
     instantPaintMinDistCol(label, color, textColor);
@@ -165,7 +144,7 @@ export const paintMinDistCol = async function(label, color, textColor) {
 
 export const instantPaintMinDistCol = function(label, color, textColor) {
     let labelCell, distCell;
-    [labelCell, distCell] = getTableDistCol(label);
+    [labelCell, distCell] = getMinDistanceTableDistCol(label);
     labelCell.style.backgroundColor = color;
     labelCell.style.color = textColor;
     distCell.style.backgroundColor = color;
@@ -173,7 +152,69 @@ export const instantPaintMinDistCol = function(label, color, textColor) {
 }
 
 export const updateTableContents = function(label, dist) {
-    getTableDistCell(label).innerText = String(dist);
+    getMinDistanceTableDistCell(label).innerText = String(dist);
+}
+
+export const getContext = () =>  getCanvas().getContext('2d');
+
+export const drawScoresTable = function() {
+    getGraphViz().appendChild(getFreshScoresTable());
+    let caption = document.createElement("caption");
+    caption.id = "scores-caption";
+    caption.innerText = "Connection Scores";
+    caption.classList.add("min-distances");
+    getGraphViz().appendChild(caption);
+}
+
+export const instantPaintScoreCol = function(label, color) {
+    getScoresTable().children[0].children[label].style.backgroundColor = color;
+    getScoresTable().children[1].children[label].style.backgroundColor = color;
+}
+
+export const topSortOrderAppend = async function(label) {
+    let orderP = getTopSortOrder();
+    let sp = document.createElement("span");
+    sp.innerText = `${label}, `;
+    sp.classList.add("top-sort-order");
+    sp.style.color = "green";
+    orderP.appendChild(sp);
+    return new Promise(resolve => {
+        setTimeout(() => {
+            sp.style.color = "black";
+            resolve();
+        }, getCurrentSpeed());
+    })
+}
+
+const drawTopSortOrder = function() {
+    let orderHeader = document.createElement("p");
+    orderHeader.id = "top-sort-order";
+    orderHeader.classList.add("min-distances");
+    orderHeader.innerText = "Top Sort Order: "
+    getGraphViz().appendChild(orderHeader);
+}
+
+const getFreshScoresTable = function() {
+    let table = document.createElement("table");
+    table.id = "min-distances-table";
+    table.classList.add("min-distances");
+    let numNodes = Object.keys(displayedNodeData).length;
+    let tr, td;
+    for (let r = 0; r < 2; r++) {
+        tr = document.createElement("tr");
+        tr.classList.add("min-distances");
+
+        for (let label = 0; label < numNodes; label++) {
+            td = document.createElement("td");
+            td.classList.add("min-distances");
+            td.classList.add("min-distances-td");
+            td.innerText = r === 0 ? String(label) : "0";
+            tr.appendChild(td);
+        }
+        table.appendChild(tr);
+    }
+
+    return table;
 }
 
 const resizeEdgesToWeights = function() {
@@ -193,7 +234,7 @@ const resizeEdgesToWeights = function() {
     }
 }
 
-const getTableDistCol = (label) => [getTable().children[0].children[label], getTable().children[1].children[label]];
+const getMinDistanceTableDistCol = (label) => [getMinDistanceTable().children[0].children[label], getMinDistanceTable().children[1].children[label]];
 
 const getFreshMinDistancesTable = function() {
     let table = document.createElement("table");
@@ -235,8 +276,8 @@ const generateShownEdgeWeights = function() {
 const drawEdgeWeight = function(startData, endData, weight, color) {
     let x1, y1, x2, y2;
     x1 = startData.x, y1 = startData.y, x2 = endData.x, y2 = endData.y;
-    let m = slope(x1, y1, x2, y2);
-    let [wx, wy] = midpoint(x1, y1, x2, y2);
+    let m = shapesMath.slope(x1, y1, x2, y2);
+    let [wx, wy] = shapesMath.midpoint(x1, y1, x2, y2);
     if (m === Infinity) wx += 5;
     else {
         wy -= 5;
@@ -285,115 +326,12 @@ const getDisplayedEdges = function(nodeLabel, lastNode) {
 const drawEdge = function(startData, endData) {
     let x1, y1, x2, y2;
     x1 = startData.x, y1 = startData.y, x2 = endData.x, y2 = endData.y;
-    let m = slope(x1, y1, x2, y2);
+    let m = shapesMath.slope(x1, y1, x2, y2);
     let c = y1 - m * x1;
     let lineStart, lineEnd;
-    [lineStart, lineEnd] = getEdgeTips(x1, y1, x2, y2, startData.radius, m, c);
-    drawLine(lineStart, lineEnd, 2, "grey");
-    drawTriangle(lineStart, lineEnd, x2, y2, m, c);
-}
-
-const drawTriangle = function(lineStart, lineEnd, nodeCenterX, nodeCenterY, m, c, color) {
-    let baseMidPoint, baseEdges;
-    if (m === Infinity) {
-        baseMidPoint = lineStart[1] > lineEnd[1] ? [lineEnd[0], lineEnd[1] + 20] : [lineEnd[0], lineEnd[1] - 20];
-        baseEdges = [[baseMidPoint[0] - 10, baseMidPoint[1]], [baseMidPoint[0] + 10, baseMidPoint[1]]];
-    }
-    else if (m === 0) {
-        baseMidPoint = lineStart[0] > lineEnd[0] ? [lineEnd[0] + 20, lineEnd[1]] : [lineEnd[0] - 20, lineEnd[1]];
-        baseEdges = [[baseMidPoint[0], baseMidPoint[1] - 10], [baseMidPoint[0], baseMidPoint[1] + 10]];
-    }
-    else {
-        baseMidPoint = getTriangleBaseMidPoint(lineEnd[0], lineEnd[1], nodeCenterX, nodeCenterY, m, c);
-        let orthoM = -(1 / m);
-        let k = baseMidPoint[1] - orthoM * baseMidPoint[0]; // y int of line orthogonal to array line, d = y0 + m*x0
-        baseEdges = getLinePointsDistanceAwayFromXY(10, baseMidPoint[0], baseMidPoint[1], orthoM, k);
-    }
-    let x1, y1, x2, y2, x3, y3;
-    x1 = lineEnd[0], y1 = lineEnd[1];
-    x2 = baseEdges[0][0], y2 = baseEdges[0][1];
-    x3 = baseEdges[1][0], y3 = baseEdges[1][1];
-
-    getContext().beginPath();
-    getContext().fillStyle = color;
-    getContext().moveTo(x1, y1);
-    getContext().lineTo(x2, y2);
-    getContext().lineTo(x3, y3);
-    getContext().fill();
-}
-
-const getTriangleBaseMidPoint = function(lineEndX, lineEndY, nodeCenterX, nodeCenterY, m, c) {
-    return furthestFrom([nodeCenterX, nodeCenterY], getLinePointsDistanceAwayFromXY(20, lineEndX, lineEndY, m, c));
-}
-
-const furthestFrom = (target, points) => {
-    let x1, y1, x2, y2, targetX, targetY;
-    x1 = points[0][0], y1 = points[0][1], x2 = points[1][0], y2 = points[1][1];
-    targetX = target[0], targetY = target[1];
-    let diff1 = Math.abs(targetX - x1) + Math.abs(targetY - y1);
-    let diff2 = Math.abs(targetX - x2) + Math.abs(targetY - y2);
-    return diff1 > diff2 ? points[0] : points[1];
-}
-
-const getLinePointsDistanceAwayFromXY = function(d, x, y, m, c) {
-    let A = 1 + m ** 2;
-    let B = 2 * (m * (c - y) - x)
-    let C = x ** 2 + (c - y) ** 2 - d ** 2;
-    let x1 = (-B + ((B ** 2 - 4 * A * C) ** 0.5)) / (2 * A);
-    let x2 = (-B - ((B ** 2 - 4 * A * C) ** 0.5)) / (2 * A);
-    let y1 = m * x1 + c;
-    let y2 = m * x2 + c;
-    return [[x1, y1], [x2, y2]];
-}
-
-const drawLine = function(lineStart, lineEnd, width, color) {
-    getContext().beginPath();
-    getContext().moveTo(lineStart[0], lineStart[1]);
-    getContext().strokeStyle = color;
-    getContext().lineTo(lineEnd[0], lineEnd[1]);
-    getContext().lineWidth = width;
-    getContext().stroke();
-}
-
-const getEdgeTips = function(x1, y1, x2, y2, r, m, c) {
-    if (x1 === x2) return verticalEdgeTips(x1, y1, x2, y2, r);
-
-    let tips = null;
-    for (const p1 of getLineCircleIntersection(x1, y1, m, c, r)) {
-        for (const p2 of getLineCircleIntersection(x2, y2, m, c, r)) {
-            if (tips === null || (distanceBetween(p1, p2) < distanceBetween(tips[0], tips[1]))) {
-                tips = [p1, p2];
-            }
-        }
-    }
-    return tips;
-}
-
-const verticalEdgeTips = function(x1, y1, x2, y2, r) {
-    let topY = y1 < y2 ? y1 : y2;
-    let bottomY = y1 > y2 ? y1 : y2;
-    return y1 < y2 ? [[x1, topY + 20], [x1, bottomY - 20]] : [[x1, bottomY - 20], [x1, topY + 20]];
-}
-
-const getLineCircleIntersection = function(p, q, m, c, r) {
-    let A = m ** 2 + 1;
-    let B = 2 * (m * c - m * q - p);
-    let C = q ** 2 - r ** 2 + p ** 2 - 2 * c * q + c ** 2;
-    if ((B ** 2 - 4 * A * C) < 0) {
-        console.log("no intersection");
-        return [];
-    }
-    let x1 = (-B + ((B ** 2 - 4 * A * C) ** 0.5)) / (2 * A);
-    let x2 = (-B - ((B ** 2 - 4 * A * C) ** 0.5)) / (2 * A);
-    let y1 = m * x1 + c;
-    let y2 = m * x2 + c;
-    return [[x1, y1], [x2, y2]];
-}
-
-const distanceBetween = function(p1, p2) {
-    let x1, y1, x2, y2;
-    x1 = p1[0], y1 = p1[1], x2 = p2[0], y2 = p2[1];
-    return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5;
+    [lineStart, lineEnd] = shapesMath.getEdgeTips(x1, y1, x2, y2, startData.radius, m, c);
+    shapesMath.drawLine(lineStart, lineEnd, 2, "grey");
+    shapesMath.drawTriangle(lineStart, lineEnd, x2, y2, m, c);
 }
 
 const drawNodes = function(numNodes) {
@@ -417,46 +355,6 @@ const drawNode = function(nodeInfo, label) {
     else getContext().fillText(label, nodeInfo.x - 10, nodeInfo.y + 7);
 }
 
-const generateNodeCanvasData = function() {
-    let originY = 50;
-    let originX = 50;
-    let w = CANVAS_WIDTH;
-    let canvasData = {};
-    for (let r = 0; r < 6; r++) {
-        if (r === 0) generateRowData(3, originX + w / 4, originY, 150, canvasData, r);
-        else if (r % 2 === 1) generateRowData(4, originX + w / 8, originY + (r * 100), 150, canvasData, r);
-        else generateRowData(5, originX, originY + (r * 100), 150, canvasData, r);
-    }
-    return canvasData;
-}
-
-const generateRowData = function(rowNodes, firstX, firstY, spaceBetween, canvasData, row) {
-    for (let c = 0; c < rowNodes; c++) {
-        let newNode = {
-            radius: 20,
-            fillStyle: "#808080", // grey
-            strokeStyle: "#000000", // black outline
-        };
-        newNode.x = firstX + (c * spaceBetween);
-        newNode.y = firstY;
-        canvasData[labelFromRC(row, c)] = newNode;
-    }
-}
-
-const labelFromRC = function(row, col) {
-    let rcNumber = col;
-    if (row > 0) rcNumber += 3;
-    if (row > 1) rcNumber += 4;
-    if (row > 2) rcNumber += 5;
-    if (row > 3) rcNumber += 4;
-    if (row > 4) rcNumber += 5;
-
-    return RC_TO_LABEL[rcNumber];
-}
-
 const getCanvas = () =>  document.getElementById("graph-canvas");
-const getContext = () =>  getCanvas().getContext('2d');
-const getCaption = () => document.getElementById("min-distances-caption");
-const getTable = () => document.getElementById("min-distances-table");
-const midpoint = (x1, y1, x2, y2) => [(x1 + x2) / 2, (y1 + y2) / 2];
-const slope = (x1, y1, x2, y2) => x1 - x2 === 0 ? Infinity : (y1 - y2) / (x1 - x2);
+const getMinDistanceTable = () => document.getElementById("min-distances-table");
+const getTopSortOrder = () => document.getElementById("top-sort-order");
