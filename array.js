@@ -1,4 +1,4 @@
-import { getCurrentSpeed, getSizeSliderValue, getSelectedType, reset } from "./index.js";
+import { getCurrentSpeed, getSizeSliderValue, getSelectedType, removeComplete } from "./index.js";
 
 const MAX_ELEMENT = 99;
 const MIN_ELEMENT = 1;
@@ -56,6 +56,7 @@ export const sortForSearch = function() {
 export const paintFreshArray = function() {
     if (array.length === 0) fillArray();
     removeOldBars();
+    removeComplete();
     for (let i = 0; i < resetArray.length; i++) {
         array[i] = resetArray[i];
         appendCard(createNewBarCard(resetArray[i]));

@@ -1,4 +1,4 @@
-import { reset, getStartNode } from "./index.js";
+import { reset } from "./index.js";
 import { paintEdge, paintNode, instantPaintNode, displayedNodeData, edgesToWeights,
          instantPaintEdge, paintMinDistCol, instantPaintMinDistCol, updateTableContents,
          topSortOrderAppend } from "./graph.js";

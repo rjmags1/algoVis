@@ -1,4 +1,4 @@
-import { getSizeSliderValue, getCurrentSpeed, getGraphViz, selected } from "./index.js";
+import { getSizeSliderValue, getCurrentSpeed, getGraphViz, selected, toggleRandomInput, removeComplete } from "./index.js";
 import * as shapesMath from "./shapesMath.js";
 
 export const CANVAS_WIDTH = 700;
@@ -25,7 +25,7 @@ const LABELS_TO_EDGES = [
     [7],
     [],
     [21], // 20
-    [0],
+    [],
     [8],
     [],
     [23]
@@ -40,6 +40,7 @@ export const paintFreshGraph = function(e) {
     let canvas = getCanvas();
     canvas.remove();
     removeTables();
+    removeComplete();
     canvas = document.createElement("canvas");
     canvas.id = "graph-canvas";
     canvas.width = CANVAS_WIDTH;
@@ -55,6 +56,8 @@ export const paintFreshGraph = function(e) {
         drawEdgeWeights(newWeights);
         drawMinDistancesTable();
     }
+    else toggleRandomInput(true);
+
     if (selected === "Top Sort") {
         drawTopSortOrder()
         drawScoresTable();

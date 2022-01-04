@@ -31,13 +31,18 @@ export const getSelectedType = () => {
     return selected in SEARCH_ALGOS ? "Search" : "Graph";
 }
 
+export const removeComplete = () => {
+    let h = document.getElementById("run-complete");
+    if (h) h.remove();
+}
+
 export const reset = () => getRunningStatus() === "no";
 export const getCurrentSpeed = () => (MIN_ANIM_SPEED / getSpeedSliderValue()) * 1000;
 export const getSizeSliderValue = () => Number(getSizeSlider().value);
 export const getSpeedSliderValue = () => Number(document.getElementById("speed-slider").value);
 export const getArrayViz = () => document.getElementById("array-visualizer");
 export const getGraphViz = () => document.getElementById("graph-visualizer");
-export const getStartNode = () => getSearchTargetInput().value;
+export const toggleRandomInput = (erase) => getRandomButton().style.display = erase ? "none" : "inline-block";
 
 const bindControlPanelInputs = function() {
     getSizeSlider().addEventListener("mouseup", resizeArray);
@@ -49,10 +54,23 @@ const bindControlPanelInputs = function() {
 const runAlgorithm = async function() {
     if (algoRunning()) return;
 
+    removeComplete();
+
+    let reset;
     let algoType = getSelectedType();
-    if (algoType === "Sort") await doSort();
-    else if (algoType === "Search") await doSearch();
-    else if (algoType === "Graph") await doGraph();
+    if (algoType === "Sort") reset = await doSort();
+    else if (algoType === "Search") reset = await doSearch();
+    else if (algoType === "Graph") reset = await doGraph();
+
+    if (!reset) runComplete();
+}
+
+const runComplete = function() {
+    let h = document.createElement("h2");
+    h.id = "run-complete";
+    h.innerText = "Run Complete!";
+    let mc = document.getElementById("main-content");
+    mc.insertBefore(h, mc.children[0]);
 }
 
 const doSort = async function() {
@@ -68,6 +86,8 @@ const doSort = async function() {
     if (reset) paintFreshArray();
     resetControlsPostRun();
     setRunningStatus("no");
+
+    return reset;
 }
 
 const doSearch = async function() {
@@ -85,6 +105,8 @@ const doSearch = async function() {
     if (reset) paintFreshArray();
     resetControlsPostRun();
     setRunningStatus("no");
+
+    return reset;
 }
 
 const doGraph = async function() {
@@ -95,9 +117,11 @@ const doGraph = async function() {
     if (selected === "BFS") reset = await graphAlgos.doBFS();
     if (selected === "Dijsktra") reset = await graphAlgos.doDijsktra();
     if (selected === "Top Sort") reset = await graphAlgos.doTopSort();
-    if (reset) paintFreshGraph();
     resetControlsPostRun();
+    if (reset) paintFreshGraph();
     setRunningStatus("no");
+
+    return reset;
 }
 
 const disableSearchInput = function() {
@@ -221,6 +245,7 @@ const updateSelectedAdjustDisplay = function(e) {
     // calibrates event listeners and visibility of display inputs 
     let prevSelected = selected;
     selected = e.target.innerText;
+    removeComplete();
     if (selected === prevSelected) return;
     
     // set display to default
@@ -300,4 +325,3 @@ const getSelectedAlgoHeader = () => document.getElementById("selected-algo");
 const validSearchTarget = (target) => target.match(/^\d+$/) !== null;
 const toggleSearchTargetLabel = (target) => getSearchTargetLabel().innerText = target ? "Search Target:" : "Start Node:";
 const toggleRandomInputLabel = (input) => getRandomButton().value = input ? "Random Input" : "Random Weight";
-const toggleRandomInput = (erase) => getRandomButton().style.display = erase ? "none" : "inline-block";
