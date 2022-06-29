@@ -94,6 +94,10 @@
     #navbar .submenu a {
         font-size: 0.80rem;
     }
+
+    .graph-submenu-li {
+        display: none;
+    }
 }
 
 
@@ -117,7 +121,7 @@
     flex-direction: column;
     justify-content: flex-end;
     align-items: center;
-    margin: 5px;
+    margin: 0.15rem;
     height: 80%;
 }
 
@@ -129,8 +133,36 @@
 
 .bar {
     background-color: #254441;
-    width: 1rem;
+    width: 0.80rem;
     margin-bottom: 2px;
+}
+
+@media only screen and (max-width: 400px) {
+    .bar {
+        width: 5px;
+    }
+
+    .bar-card > p {
+        display: none;
+    }
+
+    .bar-card {
+        margin: 1px;
+    }
+}
+
+@media only screen and (min-width: 400px) and (max-width: 900px) {
+    .bar {
+        width: 0.7rem;
+    }
+
+    .bar-card > p {
+        display: none;
+    }
+
+    .bar-card {
+        margin: 1.5px;
+    }
 }
 
 
