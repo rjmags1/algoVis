@@ -73,7 +73,7 @@
     flex: 1;
 }
 
-@media only screen and (max-width: 400px) {
+@media only screen and (max-width: 500px) {
     #navbar h1 {
         font-size: 1.1rem;
         font-weight: normal;
@@ -137,7 +137,7 @@
     margin-bottom: 2px;
 }
 
-@media only screen and (max-width: 400px) {
+@media only screen and (max-width: 500px) {
     .bar {
         width: 5px;
     }
@@ -151,7 +151,7 @@
     }
 }
 
-@media only screen and (min-width: 400px) and (max-width: 900px) {
+@media only screen and (min-width: 500px) and (max-width: 900px) {
     .bar {
         width: 0.7rem;
     }
