@@ -186,20 +186,51 @@ const unbindSubmenuButtons = function() {
 
 const bindSubmenuButtons = function() {
     let sortingSubmenu = getSubmenu("sort");
+    sortingSubmenu.parentElement.firstElementChild.addEventListener(
+        "click", submenuClickHandler)
     let anchor;
     for (let i = 0; i < sortingSubmenu.children.length; i++) {
         anchor = sortingSubmenu.children[i].firstElementChild;
         anchor.addEventListener("click", updateSelectedAdjustDisplay);    
     }
+
     let searchingSubmenu = getSubmenu("search");
+    searchingSubmenu.parentElement.firstElementChild.addEventListener(
+        "click", submenuClickHandler)
     for (let i = 0; i < searchingSubmenu.children.length; i++) {
         anchor = searchingSubmenu.children[i].firstElementChild;
         anchor.addEventListener("click", updateSelectedAdjustDisplay);     
     }
+
     let graphSubmenu = getSubmenu("graph");
+    graphSubmenu.parentElement.firstElementChild.addEventListener(
+        "click", submenuClickHandler)
     for (let i = 0; i < graphSubmenu.children.length; i++) {
         anchor = graphSubmenu.children[i].firstElementChild;
         anchor.addEventListener("click", updateSelectedAdjustDisplay);
+    }
+
+    document.addEventListener("click", (e) => handleSubmenuOutsideClick(
+        e.target, [sortingSubmenu, searchingSubmenu, graphSubmenu]))
+}
+
+const handleSubmenuOutsideClick = function(clicked, submenus) {
+    const notOutsideClick = submenus.map(
+        s => s.parentElement.firstElementChild).includes(clicked)
+    if (notOutsideClick) return
+
+    for (const submenu of submenus) {
+        for (let i = 0; i < submenu.children.length; i++) {
+            submenu.children[i].style.display = ""
+        }
+    }
+}
+
+const submenuClickHandler = function(e) {
+    const submenu = e.target.nextElementSibling
+    const displayed = !!submenu.firstElementChild.style.display
+    for (let i = 0; i < submenu.children.length; i++) {
+        submenu.children[i].style.display = displayed ? "" : "block"
     }
 }
 

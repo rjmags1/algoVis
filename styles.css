@@ -48,13 +48,6 @@
     position: relative;
 }
 
-/* on hover give submenu li block display */
-#navbar li:hover .submenu > li {
-    display: block;
-    top: 0px;
-}
-
-/* when submenus not hovered over, remove submenu li from flow and hide them */
 .submenu li {
     display: none;
     position: absolute;
