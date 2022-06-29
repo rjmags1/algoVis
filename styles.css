@@ -149,6 +149,10 @@
     .bar-card {
         margin: 1px;
     }
+
+    #array-visualizer {
+        height: calc(100% - 112px);
+    }
 }
 
 @media only screen and (min-width: 500px) and (max-width: 900px) {
@@ -162,6 +166,11 @@
 
     .bar-card {
         margin: 1.5px;
+    }
+
+
+    #array-visualizer {
+        height: calc(100% - 112px);
     }
 }
 
@@ -226,7 +235,7 @@ caption.min-distances {
 #selected-algo {
     text-shadow: 1px 1px 2px black;
     padding: 2%;
-    width: 18%;
+    width: fit-content;
 }
 
 .control {
@@ -272,6 +281,43 @@ caption.min-distances {
 .target-label {
     display: inline;
     margin-right: 3%;
+}
+
+#upper-control-panel-section {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    height: 56px;
+}
+
+#lower-control-panel-section {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    height: 56px;
+}
+
+@media only screen and (max-width: 900px) {
+    #selected-algo {
+        font-size: 0.9rem;
+        font-weight: normal;
+    }
+
+    .control-panel div p {
+        font-size: 0.8rem;
+        font-weight: normal;
+    }
+
+    .control-panel {
+        height: 112px;
+        flex-direction: column;
+    }
+
+    .control-button {
+        width: 100%;
+    }
 }
 
 /* cross browser compatible styles for range inputs */

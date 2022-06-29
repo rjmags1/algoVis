@@ -84,27 +84,32 @@
         </div>
         <div id="running" style="display: none;">no</div>
         <div class="control-panel">
-            <h3 id="selected-algo">Algorithm: Bubble Sort</h3>
-            <div class="control size-slider-card">
-                <p id="size-slider-label" class="input-label">Input Size</p>
-                <input id="size-slider" class="control-slider" type="range" min="4" max="50" step="1" value="25">
+            <div id="upper-control-panel-section">
+                <h3 id="selected-algo">Algorithm: Bubble Sort</h3>
+                <div class="control size-slider-card">
+                    <p id="size-slider-label" class="input-label">Input Size</p>
+                    <input id="size-slider" class="control-slider" type="range" min="4" max="50" step="1" value="25">
+                </div>
+                <div class="control speed-slider-card">
+                    <p class="input-label">Speed</p>
+                    <input id="speed-slider" class="control-slider" type="range" min="1" max="20" step="0.1" value="10">
+                </div>
             </div>
-            <div class="control speed-slider-card">
-                <p class="input-label">Speed</p>
-                <input id="speed-slider" class="control-slider" type="range" min="1" max="20" step="0.1" value="10">
-            </div>
-            <div class="control search-target-card" id="search-target-card">
-                <p class="input-label target-label" id="search-target-label">Search Target:</p>
-                <input class="search-target-input" id="search-target" type="text">
-            </div>
-            <div class="control button-card">
-                <input class="control-button" id="random-input-button" type="button" value="Random Input"> 
-            </div>
-            <div class="control button-card">
-                <input class="control-button" id="play-button" type="button" value="Sort">
-            </div>
-            <div class="control button-card">
-                <input class="control-button" id="reset-button" type="button" value="Reset"> 
+            
+            <div id="lower-control-panel-section">
+                <div class="control search-target-card" id="search-target-card">
+                    <p class="input-label target-label" id="search-target-label">Search Target:</p>
+                    <input class="search-target-input" id="search-target" type="text">
+                </div>
+                <div class="control button-card">
+                    <input class="control-button" id="random-input-button" type="button" value="Random Input"> 
+                </div>
+                <div class="control button-card">
+                    <input class="control-button" id="play-button" type="button" value="Sort">
+                </div>
+                <div class="control button-card">
+                    <input class="control-button" id="reset-button" type="button" value="Reset"> 
+                </div>
             </div>
         </div>
     </div>
