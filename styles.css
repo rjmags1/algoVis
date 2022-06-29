@@ -12,10 +12,13 @@
 
 /* NAVBAR ------------------------------------------------*/
 /* base navbar styles */
+#navbar {
+    background-color: #254441;
+}
+
 #navbar h1 {
     padding: 2%;
     color: #f6f7f8;
-    background-color: #254441;
     height: 56px;
     display: flex;
     align-items: center;
@@ -68,6 +71,29 @@
 
 .menu-li {
     flex: 1;
+}
+
+@media only screen and (max-width: 400px) {
+    #navbar h1 {
+        font-size: 1.1rem;
+        font-weight: normal;
+    }
+
+    #navbar a {
+        font-size: 0.9rem;
+    }
+
+    .header-li {
+        flex: 1;
+    }
+
+    .menu-li {
+        flex: 1;
+    }
+
+    #navbar .submenu a {
+        font-size: 0.80rem;
+    }
 }
 
 

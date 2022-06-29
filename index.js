@@ -186,32 +186,34 @@ const unbindSubmenuButtons = function() {
 
 const bindSubmenuButtons = function() {
     let sortingSubmenu = getSubmenu("sort");
-    sortingSubmenu.parentElement.firstElementChild.addEventListener(
-        "click", submenuClickHandler)
+    let searchingSubmenu = getSubmenu("search");
+    let graphSubmenu = getSubmenu("graph");
+    let submenus = [sortingSubmenu, searchingSubmenu, graphSubmenu]
     let anchor;
+
+    sortingSubmenu.parentElement.firstElementChild.addEventListener(
+        "click", (e) => submenuClickHandler(e, submenus))
     for (let i = 0; i < sortingSubmenu.children.length; i++) {
         anchor = sortingSubmenu.children[i].firstElementChild;
         anchor.addEventListener("click", updateSelectedAdjustDisplay);    
     }
 
-    let searchingSubmenu = getSubmenu("search");
     searchingSubmenu.parentElement.firstElementChild.addEventListener(
-        "click", submenuClickHandler)
+        "click", (e) => submenuClickHandler(e, submenus))
     for (let i = 0; i < searchingSubmenu.children.length; i++) {
         anchor = searchingSubmenu.children[i].firstElementChild;
         anchor.addEventListener("click", updateSelectedAdjustDisplay);     
     }
 
-    let graphSubmenu = getSubmenu("graph");
     graphSubmenu.parentElement.firstElementChild.addEventListener(
-        "click", submenuClickHandler)
+        "click", (e) => submenuClickHandler(e, submenus))
     for (let i = 0; i < graphSubmenu.children.length; i++) {
         anchor = graphSubmenu.children[i].firstElementChild;
         anchor.addEventListener("click", updateSelectedAdjustDisplay);
     }
 
     document.addEventListener("click", (e) => handleSubmenuOutsideClick(
-        e.target, [sortingSubmenu, searchingSubmenu, graphSubmenu]))
+        e.target, submenus))
 }
 
 const handleSubmenuOutsideClick = function(clicked, submenus) {
@@ -226,11 +228,19 @@ const handleSubmenuOutsideClick = function(clicked, submenus) {
     }
 }
 
-const submenuClickHandler = function(e) {
+const submenuClickHandler = function(e, submenus) {
     const submenu = e.target.nextElementSibling
     const displayed = !!submenu.firstElementChild.style.display
     for (let i = 0; i < submenu.children.length; i++) {
         submenu.children[i].style.display = displayed ? "" : "block"
+    }
+
+    for (const s of submenus) {
+        if (s === submenu) continue
+
+        for (let i = 0; i < s.children.length; i++) {
+            s.children[i].style.display = ""
+        }
     }
 }
 
