@@ -166,18 +166,21 @@ const resetControlsPostRun = function() {
 }
 
 const unbindSubmenuButtons = function() {
-    let sortingSubmenu = getSubmenu("sort");
     let anchor;
+    let sortingSubmenu = getSubmenu("sort");
+    sortingSubmenu.removeEventListener("click", submenuClickHandler)
     for (let i = 0; i < sortingSubmenu.children.length; i++) {
         anchor = sortingSubmenu.children[i].firstElementChild;
         anchor.removeEventListener("click", updateSelectedAdjustDisplay);
     }
     let searchingSubmenu = getSubmenu("search");
+    searchingSubmenu.removeEventListener("click", submenuClickHandler)
     for (let i = 0; i < searchingSubmenu.children.length; i++) {
         anchor = searchingSubmenu.children[i].firstElementChild;
         anchor.removeEventListener("click", updateSelectedAdjustDisplay);
     }
     let graphSubmenu = getSubmenu("graph");
+    graphSubmenu.removeEventListener("click", submenuClickHandler)
     for (let i = 0; i < graphSubmenu.children.length; i++) {
         anchor = graphSubmenu.children[i].firstElementChild;
         anchor.removeEventListener("click", updateSelectedAdjustDisplay);
@@ -192,21 +195,21 @@ const bindSubmenuButtons = function() {
     let anchor;
 
     sortingSubmenu.parentElement.firstElementChild.addEventListener(
-        "click", (e) => submenuClickHandler(e, submenus))
+        "click", submenuClickHandler)
     for (let i = 0; i < sortingSubmenu.children.length; i++) {
         anchor = sortingSubmenu.children[i].firstElementChild;
         anchor.addEventListener("click", updateSelectedAdjustDisplay);    
     }
 
     searchingSubmenu.parentElement.firstElementChild.addEventListener(
-        "click", (e) => submenuClickHandler(e, submenus))
+        "click", submenuClickHandler)
     for (let i = 0; i < searchingSubmenu.children.length; i++) {
         anchor = searchingSubmenu.children[i].firstElementChild;
         anchor.addEventListener("click", updateSelectedAdjustDisplay);     
     }
 
     graphSubmenu.parentElement.firstElementChild.addEventListener(
-        "click", (e) => submenuClickHandler(e, submenus))
+        "click", submenuClickHandler)
     for (let i = 0; i < graphSubmenu.children.length; i++) {
         anchor = graphSubmenu.children[i].firstElementChild;
         anchor.addEventListener("click", updateSelectedAdjustDisplay);
@@ -228,7 +231,9 @@ const handleSubmenuOutsideClick = function(clicked, submenus) {
     }
 }
 
-const submenuClickHandler = function(e, submenus) {
+const submenuClickHandler = function(e) {
+    const submenus = [
+        getSubmenu("sort"), getSubmenu("search"), getSubmenu("graph")]
     const submenu = e.target.nextElementSibling
     const displayed = !!submenu.firstElementChild.style.display
     for (let i = 0; i < submenu.children.length; i++) {
